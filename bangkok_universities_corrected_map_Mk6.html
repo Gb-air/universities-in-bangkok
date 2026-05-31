@@ -1,0 +1,488 @@
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sarabun',system-ui,sans-serif}
+#wrap{position:relative;width:100%;height:700px;border-radius:12px;overflow:hidden;border:0.5px solid #ddd}
+#map{width:100%;height:100%}
+.panel{position:absolute;top:10px;left:10px;z-index:1000;width:230px;display:flex;flex-direction:column;gap:5px;max-height:678px;overflow-y:auto;padding-bottom:4px;scrollbar-width:thin;scrollbar-color:#ddd transparent}
+.panel::-webkit-scrollbar{width:3px}.panel::-webkit-scrollbar-thumb{background:#ddd;border-radius:3px}
+.pbox{background:rgba(255,255,255,0.97);border:0.5px solid rgba(0,0,0,0.13);border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.07);flex-shrink:0}
+.phead{display:flex;justify-content:space-between;align-items:center;padding:7px 10px;cursor:pointer;user-select:none}
+.phead:hover{background:rgba(0,0,0,0.02)}
+.phl{font-size:11px;font-weight:700;color:#444;letter-spacing:.02em}
+.chev{font-size:11px;color:#bbb;transition:transform .18s}
+.chev.open{transform:rotate(180deg)}
+.pbody{padding:6px 10px 8px;border-top:0.5px solid rgba(0,0,0,0.06);display:flex;flex-wrap:wrap;gap:4px}
+.pbody.collapsed{display:none}
+.fb{font-size:10.5px;padding:3px 8px;border-radius:999px;border:0.5px solid #d0d0d0;background:#f4f4f4;color:#555;cursor:pointer;line-height:1.5;transition:all .12s;white-space:nowrap}
+.fb.on{background:#A51828;color:#fff;border-color:#A51828}
+/* SEARCH */
+.search-wrap{position:relative}
+.search-row{display:flex;align-items:center;padding:6px 9px;gap:5px}
+.search-input{flex:1;border:none;background:transparent;font-size:12px;color:#222;outline:none}
+.search-input::placeholder{color:#bbb}
+.search-clear{background:none;border:none;color:#bbb;cursor:pointer;font-size:16px;line-height:1;padding:0;display:none}
+.sr-dropdown{position:absolute;top:calc(100% + 2px);left:0;right:0;z-index:3000;background:#fff;border:0.5px solid rgba(0,0,0,0.15);border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,0.13);max-height:240px;overflow-y:auto;display:none}
+.sr-item{padding:8px 11px;font-size:12px;color:#222;cursor:pointer;border-bottom:0.5px solid #f2f2f2;line-height:1.4;transition:background .1s}
+.sr-item:last-child{border:none}
+.sr-item:hover,.sr-item.active{background:#fdf0f0}
+.sr-item-name{font-weight:500}
+.sr-item-sub{font-size:10px;color:#999;margin-top:1px;display:flex;gap:6px;flex-wrap:wrap}
+.sr-badge{display:inline-block;padding:0 5px;border-radius:3px;font-size:9px;font-weight:600;vertical-align:middle}
+.sr-no{padding:10px 11px;font-size:12px;color:#bbb;text-align:center}
+/* LEGEND bottom-right */
+.legend{position:absolute;bottom:28px;right:10px;z-index:1000;background:rgba(255,255,255,0.97);border:0.5px solid rgba(0,0,0,0.13);border-radius:10px;padding:9px 12px;font-size:11px;color:#555;box-shadow:0 1px 4px rgba(0,0,0,0.07)}
+.lr{display:flex;align-items:center;gap:6px;margin:3px 0}
+.lc{width:11px;height:11px;border-radius:50%;flex-shrink:0}
+.ls{width:11px;height:11px;border-radius:2px;flex-shrink:0}
+.lsep{border-top:0.5px solid #eee;margin:5px 0}
+/* INFO PANEL */
+.info{position:absolute;top:10px;right:10px;z-index:1000;width:232px;background:#fff;border:0.5px solid rgba(0,0,0,0.13);border-radius:12px;display:none;box-shadow:0 2px 14px rgba(0,0,0,0.12);overflow:hidden;max-height:666px;overflow-y:auto}
+.info-img{width:100%;height:118px;object-fit:cover;display:block;background:#f0f0f0}
+.info-img-ph{width:100%;height:118px;background:linear-gradient(135deg,#f5e6e6,#fcdede);display:flex;align-items:center;justify-content:center;font-size:36px}
+.info-body{padding:11px 13px 13px}
+.iname{font-size:13px;font-weight:700;color:#111;margin-bottom:2px;line-height:1.35}
+.iabbr{font-size:10px;color:#999;margin-bottom:8px}
+.irow{display:flex;justify-content:space-between;align-items:flex-start;padding:3.5px 0;border-bottom:0.5px solid #f2f2f2;font-size:11px;gap:6px}
+.irow:last-child{border:none}
+.ik{color:#aaa;flex-shrink:0}
+.iv{color:#222;font-weight:500;text-align:right;line-height:1.3;max-width:148px}
+.dpill{display:inline-block;padding:1px 7px;border-radius:999px;font-size:10px;font-weight:600}
+.pub-b{background:#e1f5ee;color:#0a6640;padding:1px 7px;border-radius:999px;font-size:10px;font-weight:600}
+.prv-b{background:#fef0d8;color:#7a4700;padding:1px 7px;border-radius:999px;font-size:10px;font-weight:600}
+.sat-b{background:#e8eaf6;color:#3949ab;padding:1px 7px;border-radius:999px;font-size:10px;font-weight:600}
+.info-close{position:absolute;top:8px;right:9px;background:rgba(0,0,0,0.35);border:none;color:#fff;cursor:pointer;font-size:14px;line-height:1;padding:3px 7px;border-radius:999px;z-index:10}
+.campus-badge{font-size:9px;padding:1px 6px;border-radius:3px;font-weight:700;margin-left:5px;vertical-align:middle}
+.main-badge{background:#e1f5ee;color:#0a6640}
+.sat-badge{background:#e8eaf6;color:#3949ab}
+.count{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);z-index:1000;background:rgba(255,255,255,0.97);border:0.5px solid rgba(0,0,0,0.13);border-radius:10px;padding:6px 14px;font-size:11px;color:#555;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.07)}
+</style>
+
+<div id="wrap">
+  <div id="map"></div>
+  <div class="panel">
+    <!-- Search -->
+    <div class="pbox search-wrap">
+      <div class="search-row">
+        <span style="font-size:13px;color:#bbb;flex-shrink:0">🔍</span>
+        <input class="search-input" id="searchInput" type="text" placeholder="ค้นหาสถาบัน..." oninput="onSearch()" onkeydown="onKey(event)" autocomplete="off">
+        <button class="search-clear" id="searchClear" onclick="clearSearch()">×</button>
+      </div>
+      <div class="sr-dropdown" id="srDropdown"></div>
+    </div>
+    <!-- Type -->
+    <div class="pbox"><div class="phead" onclick="tp('typeBody','tC')"><span class="phl">ประเภท</span><span class="chev open" id="tC">▾</span></div>
+    <div class="pbody" id="typeBody">
+      <button class="fb on" data-f="type" data-v="all" onclick="setF(this)">ทั้งหมด</button>
+      <button class="fb" data-f="type" data-v="public" onclick="setF(this)">รัฐบาล</button>
+      <button class="fb" data-f="type" data-v="private" onclick="setF(this)">เอกชน</button>
+    </div></div>
+    <!-- Campus type -->
+    <div class="pbox"><div class="phead" onclick="tp('campBody','campC')"><span class="phl">วิทยาเขต</span><span class="chev open" id="campC">▾</span></div>
+    <div class="pbody" id="campBody">
+      <button class="fb on" data-f="campus" data-v="all" onclick="setF(this)">ทั้งหมด</button>
+      <button class="fb" data-f="campus" data-v="main" onclick="setF(this)">วิทยาเขตหลัก</button>
+      <button class="fb" data-f="campus" data-v="satellite" onclick="setF(this)">วิทยาเขตสาขา</button>
+    </div></div>
+    <!-- Category -->
+    <div class="pbox"><div class="phead" onclick="tp('catBody','catC')"><span class="phl">หมวดหมู่</span><span class="chev open" id="catC">▾</span></div>
+    <div class="pbody" id="catBody">
+      <button class="fb on" data-f="cat" data-v="all" onclick="setF(this)">ทั้งหมด</button>
+      <button class="fb" data-f="cat" data-v="university" onclick="setF(this)">มหาวิทยาลัย</button>
+      <button class="fb" data-f="cat" data-v="rajabhat" onclick="setF(this)">ราชภัฏ</button>
+      <button class="fb" data-f="cat" data-v="rajamangala" onclick="setF(this)">ราชมงคล</button>
+      <button class="fb" data-f="cat" data-v="military" onclick="setF(this)">ทหาร/ตำรวจ</button>
+      <button class="fb" data-f="cat" data-v="college" onclick="setF(this)">วิทยาลัย/สถาบัน</button>
+      <button class="fb" data-f="cat" data-v="international" onclick="setF(this)">นานาชาติ</button>
+    </div></div>
+    <!-- Difficulty -->
+    <div class="pbox"><div class="phead" onclick="tp('diffBody','diffC')"><span class="phl">ความยากในการเข้า</span><span class="chev open" id="diffC">▾</span></div>
+    <div class="pbody" id="diffBody">
+      <button class="fb on" data-f="diff" data-v="all" onclick="setF(this)">ทั้งหมด</button>
+      <button class="fb" data-f="diff" data-v="hard" onclick="setF(this)">ยากมาก 7+</button>
+      <button class="fb" data-f="diff" data-v="mid" onclick="setF(this)">ปานกลาง 4–6</button>
+      <button class="fb" data-f="diff" data-v="easy" onclick="setF(this)">เปิดรับ 1–3</button>
+    </div></div>
+    <!-- Size -->
+    <div class="pbox"><div class="phead" onclick="tp('sizeBody','sizeC')"><span class="phl">ขนาด</span><span class="chev open" id="sizeC">▾</span></div>
+    <div class="pbody" id="sizeBody">
+      <button class="fb on" data-f="size" data-v="all" onclick="setF(this)">ทั้งหมด</button>
+      <button class="fb" data-f="size" data-v="major" onclick="setF(this)">ขนาดใหญ่</button>
+      <button class="fb" data-f="size" data-v="minor" onclick="setF(this)">ขนาดเล็ก</button>
+    </div></div>
+    <!-- Tuition -->
+    <div class="pbox"><div class="phead" onclick="tp('feeBody','feeC')"><span class="phl">ค่าเล่าเรียน (ตลอดหลักสูตร)</span><span class="chev open" id="feeC">▾</span></div>
+    <div class="pbody" id="feeBody">
+      <button class="fb on" data-f="fee" data-v="all" onclick="setF(this)">ทั้งหมด</button>
+      <button class="fb" data-f="fee" data-v="free" onclick="setF(this)">รัฐสนับสนุน</button>
+      <button class="fb" data-f="fee" data-v="low" onclick="setF(this)">ต่ำกว่า ฿100K</button>
+      <button class="fb" data-f="fee" data-v="mid" onclick="setF(this)">฿100K–300K</button>
+      <button class="fb" data-f="fee" data-v="high" onclick="setF(this)">฿300K–600K</button>
+      <button class="fb" data-f="fee" data-v="vhigh" onclick="setF(this)">สูงกว่า ฿600K</button>
+    </div></div>
+    <!-- District — Thai names -->
+    <div class="pbox"><div class="phead" onclick="tp('distBody','distC')"><span class="phl">เขต</span><span class="chev open" id="distC">▾</span></div>
+    <div class="pbody" id="distBody">
+      <button class="fb on" data-f="dist" data-v="all" onclick="setF(this)">ทั้งหมด</button>
+      <button class="fb" data-f="dist" data-v="พระนคร" onclick="setF(this)">พระนคร</button>
+      <button class="fb" data-f="dist" data-v="ปทุมวัน" onclick="setF(this)">ปทุมวัน</button>
+      <button class="fb" data-f="dist" data-v="ดุสิต" onclick="setF(this)">ดุสิต</button>
+      <button class="fb" data-f="dist" data-v="ดินแดง" onclick="setF(this)">ดินแดง</button>
+      <button class="fb" data-f="dist" data-v="บางกอกน้อย" onclick="setF(this)">บางกอกน้อย</button>
+      <button class="fb" data-f="dist" data-v="บางกอกใหญ่" onclick="setF(this)">บางกอกใหญ่</button>
+      <button class="fb" data-f="dist" data-v="วัฒนา" onclick="setF(this)">วัฒนา</button>
+      <button class="fb" data-f="dist" data-v="บางกะปิ" onclick="setF(this)">บางกะปิ</button>
+      <button class="fb" data-f="dist" data-v="จตุจักร" onclick="setF(this)">จตุจักร</button>
+      <button class="fb" data-f="dist" data-v="บางเขน" onclick="setF(this)">บางเขน</button>
+      <button class="fb" data-f="dist" data-v="ดอนเมือง" onclick="setF(this)">ดอนเมือง</button>
+      <button class="fb" data-f="dist" data-v="หลักสี่" onclick="setF(this)">หลักสี่</button>
+      <button class="fb" data-f="dist" data-v="ธนบุรี" onclick="setF(this)">ธนบุรี</button>
+      <button class="fb" data-f="dist" data-v="สาทร" onclick="setF(this)">สาทร</button>
+      <button class="fb" data-f="dist" data-v="คลองเตย" onclick="setF(this)">คลองเตย</button>
+      <button class="fb" data-f="dist" data-v="บางพลัด" onclick="setF(this)">บางพลัด</button>
+      <button class="fb" data-f="dist" data-v="คลองสาน" onclick="setF(this)">คลองสาน</button>
+      <button class="fb" data-f="dist" data-v="บางซื่อ" onclick="setF(this)">บางซื่อ</button>
+      <button class="fb" data-f="dist" data-v="ลาดกระบัง" onclick="setF(this)">ลาดกระบัง</button>
+      <button class="fb" data-f="dist" data-v="ทุ่งครุ" onclick="setF(this)">ทุ่งครุ</button>
+      <button class="fb" data-f="dist" data-v="ประเวศ" onclick="setF(this)">ประเวศ</button>
+      <button class="fb" data-f="dist" data-v="มีนบุรี" onclick="setF(this)">มีนบุรี</button>
+      <button class="fb" data-f="dist" data-v="สวนหลวง" onclick="setF(this)">สวนหลวง</button>
+      <button class="fb" data-f="dist" data-v="หนองแขม" onclick="setF(this)">หนองแขม</button>
+      <button class="fb" data-f="dist" data-v="ภาษีเจริญ" onclick="setF(this)">ภาษีเจริญ</button>
+      <button class="fb" data-f="dist" data-v="ยานนาวา" onclick="setF(this)">ยานนาวา</button>
+      <button class="fb" data-f="dist" data-v="ราชเทวี" onclick="setF(this)">ราชเทวี</button>
+      <button class="fb" data-f="dist" data-v="พระโขนง" onclick="setF(this)">พระโขนง</button>
+      <button class="fb" data-f="dist" data-v="วังทองหลาง" onclick="setF(this)">วังทองหลาง</button>
+      <button class="fb" data-f="dist" data-v="ทวีวัฒนา" onclick="setF(this)">ทวีวัฒนา</button>
+      <button class="fb" data-f="dist" data-v="outside" onclick="setF(this)">นอกกรุงเทพฯ</button>
+    </div></div>
+    <!-- Focus -->
+    <div class="pbox"><div class="phead" onclick="tp('focBody','focC')"><span class="phl">สาขาวิชาเด่น</span><span class="chev open" id="focC">▾</span></div>
+    <div class="pbody" id="focBody">
+      <button class="fb on" data-f="foc" data-v="all" onclick="setF(this)">ทั้งหมด</button>
+      <button class="fb" data-f="foc" data-v="med" onclick="setF(this)">แพทย์/สุขภาพ</button>
+      <button class="fb" data-f="foc" data-v="eng" onclick="setF(this)">วิศวกรรม/เทคโนโลยี</button>
+      <button class="fb" data-f="foc" data-v="biz" onclick="setF(this)">บริหาร/การค้า</button>
+      <button class="fb" data-f="foc" data-v="law" onclick="setF(this)">นิติ/รัฐศาสตร์</button>
+      <button class="fb" data-f="foc" data-v="arts" onclick="setF(this)">ศิลปะ/ออกแบบ</button>
+      <button class="fb" data-f="foc" data-v="edu" onclick="setF(this)">ครุศาสตร์</button>
+      <button class="fb" data-f="foc" data-v="agri" onclick="setF(this)">เกษตร/สิ่งแวดล้อม</button>
+      <button class="fb" data-f="foc" data-v="comm" onclick="setF(this)">นิเทศ/สื่อ</button>
+      <button class="fb" data-f="foc" data-v="hotel" onclick="setF(this)">การโรงแรม/ท่องเที่ยว</button>
+      <button class="fb" data-f="foc" data-v="buddha" onclick="setF(this)">พุทธศาสตร์</button>
+      <button class="fb" data-f="foc" data-v="mil" onclick="setF(this)">ทหาร/ตำรวจ</button>
+      <button class="fb" data-f="foc" data-v="music" onclick="setF(this)">ดนตรี</button>
+      <button class="fb" data-f="foc" data-v="open" onclick="setF(this)">เรียนทางไกล/เปิด</button>
+    </div></div>
+  </div>
+
+  <!-- LEGEND: bottom right -->
+  <div class="legend">
+    <div style="font-size:10px;font-weight:700;color:#888;letter-spacing:.04em;margin-bottom:5px">สัญลักษณ์</div>
+    <div class="lr"><span class="lc" style="background:#A51828;border:2px solid #fff;box-shadow:0 0 0 1.5px #A51828"></span>ยากมาก (7–10)</div>
+    <div class="lr"><span class="lc" style="background:#BA7517;border:2px solid #fff;box-shadow:0 0 0 1.5px #BA7517"></span>ปานกลาง (4–6)</div>
+    <div class="lr"><span class="lc" style="background:#1D9E75;border:2px solid #fff;box-shadow:0 0 0 1.5px #1D9E75"></span>เปิดรับ (1–3)</div>
+    <div class="lsep"></div>
+    <div class="lr"><span class="ls" style="background:#185FA5"></span>วิทยาเขตหลัก (ใหญ่)</div>
+    <div class="lr"><span class="ls" style="background:#888"></span>วิทยาลัย/เฉพาะทาง</div>
+    <div class="lr"><span class="ls" style="background:#3949ab;border-radius:50%"></span>วิทยาเขตสาขา (◇)</div>
+    <div class="lsep"></div>
+    <div class="lr"><span style="display:inline-block;width:24px;height:8px;border:1.5px solid rgba(24,95,165,.5);border-radius:2px;background:rgba(24,95,165,.07)"></span>เขตกรุงเทพมหานคร</div>
+  </div>
+
+  <div class="count" id="countBadge">กำลังโหลด...</div>
+
+  <div class="info" id="infoPanel">
+    <button class="info-close" onclick="closeInfo()">✕</button>
+    <div id="infoImg"></div>
+    <div class="info-body">
+      <div class="iname" id="iName"></div>
+      <div class="iabbr" id="iAbbr"></div>
+      <div id="iRows"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const WM='https://upload.wikimedia.org/wikipedia/commons/thumb/';
+const IMGS={CU:'images/CU-img.jpg',MU:'images/MU-img.jpg',TU:'images/TU-img.jpg',SU:'images/SU-img.jpg',KU:'images/KU-image.jpg',KMUTT:'images/KMUTT-img.jpg',KMITL:'images/KMITL-img.jpg',SWU:'images/SWU-img.png',KMUTNB:'images/KMUTNB-img.jpg',NIDA:'images/NIDA-img.png',RU:'images/RU-img.jpg',NMU:WM+'3/38/Vajira_Hospital_%28Navamindradhiraj_University%29.jpg/400px-Vajira_Hospital_%28Navamindradhiraj_University%29.jpg',STOU:WM+'4/43/Sukhothai_Thammathirat_Open_University.jpg/400px-Sukhothai_Thammathirat_Open_University.jpg',CRU:WM+'2/2a/Chandrakasem_Rajabhat_University.jpg/400px-Chandrakasem_Rajabhat_University.jpg',DRU:WM+'6/67/Dhonburi_Rajabhat_University.jpg/400px-Dhonburi_Rajabhat_University.jpg',BSRU:WM+'5/5b/Bansomdejchaopraya_Rajabhat_University.jpg/400px-Bansomdejchaopraya_Rajabhat_University.jpg',PNRU:WM+'6/60/Phranakhon_Rajabhat_University.jpg/400px-Phranakhon_Rajabhat_University.jpg',SDU:WM+'2/2c/Suan_Dusit_University.jpg/400px-Suan_Dusit_University.jpg',SSRU:WM+'7/7c/Suan_Sunandha_Rajabhat_University.jpg/400px-Suan_Sunandha_Rajabhat_University.jpg',RMUTK:WM+'e/e9/RMUTK_Bangkok.jpg/400px-RMUTK_Bangkok.jpg',RMUTR:WM+'5/5f/RMUTR.jpg/400px-RMUTR.jpg',RMUTP:WM+'8/85/Rajamangala_University_of_Technology_Phra_Nakhon.jpg/400px-Rajamangala_University_of_Technology_Phra_Nakhon.jpg',RMUTTO:WM+'b/bc/RMUTTO_Uthenthawai_Campus.jpg/400px-RMUTTO_Uthenthawai_Campus.jpg',CRA:WM+'2/2e/Chulabhorn_Royal_Academy.jpg/400px-Chulabhorn_Royal_Academy.jpg',PGVIM:WM+'a/a5/Princess_Galyani_Vadhana_Institute_of_Music.jpg/400px-Princess_Galyani_Vadhana_Institute_of_Music.jpg',PIT:WM+'5/52/Pathumwan_Institute_of_Technology.jpg/400px-Pathumwan_Institute_of_Technology.jpg',BPI:WM+'1/13/Bunditpatanasilpa_Institute.jpg/400px-Bunditpatanasilpa_Institute.jpg',MCU:WM+'c/ce/Mahachulalongkornrajavidyalaya_University.jpg/400px-Mahachulalongkornrajavidyalaya_University.jpg',MBU:WM+'1/1f/Mahamakut_Buddhist_University.jpg/400px-Mahamakut_Buddhist_University.jpg',PI:WM+'d/d5/Praboromarajchanok_Institute.jpg/400px-Praboromarajchanok_Institute.jpg',STIN:WM+'5/5e/Thai_Red_Cross_Institute_of_Nursing.jpg/400px-Thai_Red_Cross_Institute_of_Nursing.jpg',PCM:WM+'8/85/Phramongkutklao_College_of_Medicine.jpg/400px-Phramongkutklao_College_of_Medicine.jpg',RTAFA:WM+'3/3e/Royal_Thai_Air_Force_Academy.jpg/400px-Royal_Thai_Air_Force_Academy.jpg',RPCA:WM+'0/0d/Royal_Police_Cadet_Academy.jpg/400px-Royal_Police_Cadet_Academy.jpg',NDC:WM+'4/4e/National_Defence_College_Thailand.jpg/400px-National_Defence_College_Thailand.jpg',ABAC:'images/ABAC-img.jpg',BU:'images/BU-img.jpg',RSU:'images/RSU-image.jpg',DPU:'images/DPU-image.jpg',UTCC:'images/UTCC-img.jpg',SPU:'images/SPU-image.jpg',SIU:WM+'d/d1/Siam_University.jpg/400px-Siam_University.jpg',KBU:WM+'3/3e/Kasem_Bundit_University.jpg/400px-Kasem_Bundit_University.jpg',SJU:WM+'1/1f/Saint_Johns_University_Thailand.jpg/400px-Saint_Johns_University_Thailand.jpg',STIU:WM+'4/4f/Stamford_International_University.jpg/400px-Stamford_International_University.jpg',KRU:WM+'9/91/Krirk_University.jpg/400px-Krirk_University.jpg',RBAC:WM+'0/06/Rattana_Bundit_University.jpg/400px-Rattana_Bundit_University.jpg',MUT:WM+'7/76/Mahanakorn_University_of_Technology.jpg/400px-Mahanakorn_University_of_Technology.jpg',NBU:WM+'4/4b/North_Bangkok_University.jpg/400px-North_Bangkok_University.jpg',BTU:WM+'f/f4/Bangkokthonburi_University.jpg/400px-Bangkokthonburi_University.jpg',HCU:WM+'3/37/Huachiew_Chalermprakiet_University.jpg/400px-Huachiew_Chalermprakiet_University.jpg',BSU:WM+'0/04/Bangkok_Suvarnabhumi_University.jpg/400px-Bangkok_Suvarnabhumi_University.jpg',SAU:WM+'6/6c/South-East_Asia_University.jpg/400px-South-East_Asia_University.jpg',DTC:WM+'2/2f/Dusit_Thani_College.jpg/400px-Dusit_Thani_College.jpg',SAE:WM+'5/5b/SAE_Institute_Bangkok.jpg/400px-SAE_Institute_Bangkok.jpg',TSC:WM+'a/a2/Thongsook_College.jpg/400px-Thongsook_College.jpg',TBU:WM+'b/b5/Thonburi_University.jpg/400px-Thonburi_University.jpg',RIC:WM+'3/3e/Regents_International_College_Bangkok.jpg/400px-Regents_International_College_Bangkok.jpg',TNI:WM+'7/70/Thai-Nichi_Institute_of_Technology.jpg/400px-Thai-Nichi_Institute_of_Technology.jpg',WUB:WM+'1/10/Webster_University_Bangkok.jpg/400px-Webster_University_Bangkok.jpg',CMKL:WM+'a/ae/KMITL_Building.jpg/400px-KMITL_Building.jpg','HS@UTCC':WM+'3/3d/University_of_the_Thai_Chamber_of_Commerce.jpg/400px-University_of_the_Thai_Chamber_of_Commerce.jpg'};
+const EMOJI={CU:'🏛️',MU:'🏥',TU:'⚖️',SU:'🎨',KU:'🌾',KMUTT:'⚙️',KMITL:'🔬',SWU:'📚',KMUTNB:'🔧',NIDA:'📊',RU:'🎓',NMU:'🏨',STOU:'💻',CRU:'🏫',DRU:'📖',BSRU:'🏫',PNRU:'🏫',SDU:'👨‍🍳',SSRU:'🎭',RMUTK:'🔩',RMUTR:'🎨',RMUTP:'⚙️',RMUTTO:'🌱',CRA:'🔭',PGVIM:'🎵',PIT:'🔧',BPI:'🖼️',MCU:'☸️',MBU:'🪷',PI:'💊',STIN:'💉',PCM:'⚕️',RTAFA:'✈️',RPCA:'👮',NDC:'🛡️',ABAC:'⛪',BU:'🎬',RSU:'🏥',DPU:'💼',UTCC:'🏪',SPU:'🎓',SIU:'🏫',KBU:'🏗️',SJU:'📚',STIU:'🌍',KRU:'⚖️',RBAC:'🏫',MUT:'⚙️',NBU:'🏫',BTU:'🏥',HCU:'💊',BSU:'✈️',SAU:'🌏',DTC:'🏨',SAE:'🎬',TSC:'🏫',TBU:'🏫',RIC:'🌐',TNI:'🇯🇵',WUB:'🌐',CMKL:'💻','HS@UTCC':'🚀'};
+
+// campus: 'main' | 'satellite'
+// distKey now = Thai district name exactly, or 'outside'
+const INSTS=[
+  // ══ PUBLIC UNIVERSITIES ══
+  {name:"จุฬาลงกรณ์มหาวิทยาลัย",nameEn:"Chulalongkorn University",abbr:"CU",campus:"main",type:"public",cat:"university",major:true,diff:10,district:"ปทุมวัน",distKey:"ปทุมวัน",focus:"ทุกสาขาวิชา",fee:"฿120,000–600,000",feeBand:"mid",focKeys:["med","eng","biz","law","arts","edu","comm"],lat:13.7386,lng:100.5321},
+  {name:"มหาวิทยาลัยมหิดล (วิทยาเขตศิริราช)",nameEn:"Mahidol University – Siriraj",abbr:"MU",campus:"main",type:"public",cat:"university",major:true,diff:10,district:"บางกอกน้อย",distKey:"บางกอกน้อย",focus:"แพทยศาสตร์ / วิทยาศาสตร์สุขภาพ",fee:"฿80,000–2,000,000",feeBand:"high",focKeys:["med"],lat:13.7572,lng:100.4861},
+  {name:"มหาวิทยาลัยธรรมศาสตร์ (ท่าพระจันทร์)",nameEn:"Thammasat University – Tha Prachan",abbr:"TU",campus:"main",type:"public",cat:"university",major:true,diff:9,district:"พระนคร",distKey:"พระนคร",focus:"นิติศาสตร์ / สังคมศาสตร์ / เศรษฐศาสตร์",fee:"฿100,000–280,000",feeBand:"mid",focKeys:["law","biz"],lat:13.7567,lng:100.4900},
+  {name:"มหาวิทยาลัยธรรมศาสตร์ (รังสิต) — วิทยาเขต",nameEn:"Thammasat – Rangsit Campus",abbr:"TU",campus:"satellite",type:"public",cat:"university",major:true,diff:9,district:"ปทุมธานี",distKey:"outside",focus:"ทุกคณะ (วิทยาเขตหลักปัจจุบัน)",fee:"฿100,000–280,000",feeBand:"mid",focKeys:["law","biz","eng"],lat:14.0699,lng:100.6040},
+  {name:"มหาวิทยาลัยศิลปากร (วังท่าพระ)",nameEn:"Silpakorn University – Wang Tha Phra",abbr:"SU",campus:"main",type:"public",cat:"university",major:true,diff:8,district:"พระนคร",distKey:"พระนคร",focus:"วิจิตรศิลป์ / ออกแบบ / สถาปัตยกรรม",fee:"฿60,000–160,000",feeBand:"low",focKeys:["arts"],lat:13.7522,lng:100.4906},
+  {name:"มหาวิทยาลัยศิลปากร (พระราชวังสนามจันทร์) — วิทยาเขต",nameEn:"Silpakorn – Sanam Chandra Palace Campus",abbr:"SU",campus:"satellite",type:"public",cat:"university",major:true,diff:8,district:"นครปฐม",distKey:"outside",focus:"โบราณคดี / สังคมศาสตร์ / วิทยาศาสตร์",fee:"฿60,000–160,000",feeBand:"low",focKeys:["arts","edu"],lat:13.8140,lng:100.0610},
+  {name:"มหาวิทยาลัยเกษตรศาสตร์ (บางเขน)",nameEn:"Kasetsart University – Bang Khen",abbr:"KU",campus:"main",type:"public",cat:"university",major:true,diff:8,district:"จตุจักร",distKey:"จตุจักร",focus:"เกษตรศาสตร์ / วิศวกรรม / วิทยาศาสตร์",fee:"฿80,000–200,000",feeBand:"low",focKeys:["agri","eng"],lat:13.8480,lng:100.5723},
+  {name:"มหาวิทยาลัยเกษตรศาสตร์ (สาขาบางเขน — คณะสัตวแพทย์) — วิทยาเขต",nameEn:"Kasetsart – Veterinary Campus",abbr:"KU",campus:"satellite",type:"public",cat:"university",major:true,diff:8,district:"จตุจักร",distKey:"จตุจักร",focus:"สัตวแพทยศาสตร์",fee:"฿80,000–200,000",feeBand:"low",focKeys:["med","agri"],lat:13.8520,lng:100.5680},
+  {name:"มจธ. (KMUTT)",nameEn:"KMUTT – Bang Mod Campus",abbr:"KMUTT",campus:"main",type:"public",cat:"university",major:true,diff:8,district:"ทุ่งครุ",distKey:"ทุ่งครุ",focus:"วิศวกรรม / วิทยาศาสตร์ / เทคโนโลยี",fee:"฿80,000–220,000",feeBand:"low",focKeys:["eng"],lat:13.6513,lng:100.4964},
+  {name:"มจธ. วิทยาเขตราชบุรี — วิทยาเขต",nameEn:"KMUTT – Ratchaburi Campus",abbr:"KMUTT",campus:"satellite",type:"public",cat:"university",major:true,diff:8,district:"ราชบุรี",distKey:"outside",focus:"วิศวกรรม / วิทยาศาสตร์",fee:"฿80,000–220,000",feeBand:"low",focKeys:["eng"],lat:13.5280,lng:99.8180},
+  {name:"สจล. (KMITL)",nameEn:"KMITL – Lat Krabang",abbr:"KMITL",campus:"main",type:"public",cat:"university",major:true,diff:8,district:"ลาดกระบัง",distKey:"ลาดกระบัง",focus:"วิศวกรรม / เทคโนโลยีสารสนเทศ / สถาปัตยกรรม",fee:"฿80,000–220,000",feeBand:"low",focKeys:["eng","arts"],lat:13.7299,lng:100.7782},
+  {name:"มหาวิทยาลัยศรีนครินทรวิโรฒ (ประสานมิตร)",nameEn:"Srinakharinwirot University – Prasarnmit",abbr:"SWU",campus:"main",type:"public",cat:"university",major:true,diff:7,district:"วัฒนา",distKey:"วัฒนา",focus:"ครุศาสตร์ / สุขภาพ / มนุษยศาสตร์",fee:"฿60,000–160,000",feeBand:"low",focKeys:["edu","med"],lat:13.7426,lng:100.5629},
+  {name:"มศว วิทยาเขตองครักษ์ — วิทยาเขต",nameEn:"Srinakharinwirot – Ongkharak Campus",abbr:"SWU",campus:"satellite",type:"public",cat:"university",major:true,diff:7,district:"นครนายก",distKey:"outside",focus:"แพทยศาสตร์ / พยาบาล / เภสัชศาสตร์",fee:"฿60,000–160,000",feeBand:"low",focKeys:["med"],lat:14.0941,lng:101.0016},
+  {name:"มจพ. (KMUTNB)",nameEn:"KMUTNB – Bang Sue",abbr:"KMUTNB",campus:"main",type:"public",cat:"university",major:true,diff:7,district:"บางซื่อ",distKey:"บางซื่อ",focus:"วิศวกรรม / เทคโนโลยีอุตสาหกรรม",fee:"฿60,000–180,000",feeBand:"low",focKeys:["eng"],lat:13.8191,lng:100.5143},
+  {name:"สถาบันบัณฑิตพัฒนบริหารศาสตร์ (NIDA)",nameEn:"NIDA",abbr:"NIDA",campus:"main",type:"public",cat:"university",major:true,diff:7,district:"บางกะปิ",distKey:"บางกะปิ",focus:"รัฐประศาสนศาสตร์ / การจัดการ (บัณฑิตศึกษา)",fee:"฿100,000–350,000",feeBand:"mid",focKeys:["law","biz"],lat:13.7713,lng:100.6540},
+  {name:"มหาวิทยาลัยรามคำแหง",nameEn:"Ramkhamhaeng University",abbr:"RU",campus:"main",type:"public",cat:"university",major:true,diff:2,district:"บางกะปิ",distKey:"บางกะปิ",focus:"ระบบเปิด — ทุกสาขาวิชา",fee:"฿15,000–40,000",feeBand:"low",focKeys:["open"],lat:13.7587,lng:100.6181},
+  {name:"มหาวิทยาลัยนวมินทราธิราช (วชิรพยาบาล)",nameEn:"Navamindradhiraj University",abbr:"NMU",campus:"main",type:"public",cat:"university",major:false,diff:7,district:"ดุสิต",distKey:"ดุสิต",focus:"แพทยศาสตร์ / วิทยาศาสตร์สุขภาพ",fee:"฿80,000–500,000",feeBand:"mid",focKeys:["med"],lat:13.7910,lng:100.5230},
+  {name:"มหาวิทยาลัยสุโขทัยธรรมาธิราช (สำนักงานใหญ่)",nameEn:"STOU – HQ",abbr:"STOU",campus:"main",type:"public",cat:"university",major:false,diff:2,district:"นนทบุรี",distKey:"outside",focus:"การเรียนทางไกล / ระบบเปิด",fee:"฿10,000–30,000",feeBand:"low",focKeys:["open"],lat:13.8618,lng:100.5247},
+  // ══ RAJABHAT (Bangkok) ══
+  {name:"มรภ.จันทรเกษม",nameEn:"Chandrakasem Rajabhat University",abbr:"CRU",campus:"main",type:"public",cat:"rajabhat",major:false,diff:5,district:"จตุจักร",distKey:"จตุจักร",focus:"ครุศาสตร์ / มนุษยศาสตร์ / บริหาร",fee:"฿40,000–100,000",feeBand:"low",focKeys:["edu","biz"],lat:13.8147,lng:100.5680},
+  {name:"มรภ.ธนบุรี",nameEn:"Dhonburi Rajabhat University",abbr:"DRU",campus:"main",type:"public",cat:"rajabhat",major:false,diff:4,district:"ธนบุรี",distKey:"ธนบุรี",focus:"ครุศาสตร์ / วิทยาศาสตร์ / มนุษยศาสตร์",fee:"฿40,000–100,000",feeBand:"low",focKeys:["edu"],lat:13.7210,lng:100.4710},
+  {name:"มรภ.บ้านสมเด็จเจ้าพระยา",nameEn:"Bansomdejchaopraya Rajabhat",abbr:"BSRU",campus:"main",type:"public",cat:"rajabhat",major:false,diff:5,district:"บางกอกใหญ่",distKey:"บางกอกใหญ่",focus:"ครุศาสตร์ / บริหาร / วิทยาศาสตร์",fee:"฿40,000–100,000",feeBand:"low",focKeys:["edu","biz"],lat:13.7240,lng:100.4840},
+  {name:"มรภ.พระนคร",nameEn:"Phranakhon Rajabhat University",abbr:"PNRU",campus:"main",type:"public",cat:"rajabhat",major:false,diff:4,district:"บางเขน",distKey:"บางเขน",focus:"ครุศาสตร์ / มนุษยศาสตร์ / วิทยาศาสตร์",fee:"฿40,000–100,000",feeBand:"low",focKeys:["edu"],lat:13.8810,lng:100.5930},
+  {name:"มหาวิทยาลัยสวนดุสิต",nameEn:"Suan Dusit University",abbr:"SDU",campus:"main",type:"public",cat:"rajabhat",major:false,diff:6,district:"ดุสิต",distKey:"ดุสิต",focus:"ครุศาสตร์ / ศิลปะการอาหาร / พยาบาล",fee:"฿60,000–140,000",feeBand:"low",focKeys:["edu","hotel","med"],lat:13.7840,lng:100.5135},
+  {name:"มรภ.สวนสุนันทา",nameEn:"Suan Sunandha Rajabhat University",abbr:"SSRU",campus:"main",type:"public",cat:"rajabhat",major:false,diff:5,district:"ดุสิต",distKey:"ดุสิต",focus:"ครุศาสตร์ / วิจิตรศิลป์ / บริหาร",fee:"฿40,000–100,000",feeBand:"low",focKeys:["edu","arts"],lat:13.7792,lng:100.5095},
+  // ══ RAJAMANGALA ══
+  {name:"มทร.กรุงเทพ (เทคนิคกรุงเทพ)",nameEn:"Rajamangala UT Krung Thep – Technic BKK",abbr:"RMUTK",campus:"main",type:"public",cat:"rajamangala",major:false,diff:5,district:"สาทร",distKey:"สาทร",focus:"เทคโนโลยี / พาณิชยศาสตร์ / สิ่งทอ",fee:"฿40,000–100,000",feeBand:"low",focKeys:["eng","biz"],lat:13.7120,lng:100.5330},
+  {name:"มทร.รัตนโกสินทร์ (ศาลายา) — วิทยาเขตหลัก",nameEn:"Rajamangala UT Rattanakosin – Salaya",abbr:"RMUTR",campus:"main",type:"public",cat:"rajamangala",major:false,diff:5,district:"นครปฐม",distKey:"outside",focus:"เทคโนโลยี / ศิลปะประยุกต์",fee:"฿40,000–100,000",feeBand:"low",focKeys:["eng","arts"],lat:13.7960,lng:100.2980},
+  {name:"มทร.รัตนโกสินทร์ (พระนคร) — วิทยาเขต",nameEn:"Rajamangala UT Rattanakosin – Phra Nakhon",abbr:"RMUTR",campus:"satellite",type:"public",cat:"rajamangala",major:false,diff:5,district:"พระนคร",distKey:"พระนคร",focus:"ศิลปะประยุกต์ / สถาปัตยกรรม",fee:"฿40,000–100,000",feeBand:"low",focKeys:["arts","eng"],lat:13.7472,lng:100.4950},
+  {name:"มทร.พระนคร (เทเวศร์)",nameEn:"Rajamangala UT Phra Nakhon – Thewet",abbr:"RMUTP",campus:"main",type:"public",cat:"rajamangala",major:false,diff:5,district:"พระนคร",distKey:"พระนคร",focus:"เทคโนโลยี / พาณิชยศาสตร์ / วิศวกรรม",fee:"฿40,000–100,000",feeBand:"low",focKeys:["eng","biz"],lat:13.7825,lng:100.5065},
+  // RMUTTO: Uthenthawai campus (Pathum Wan, still operating but relocating) + Chakrabongse (Din Daeng)
+  {name:"มทร.ตะวันออก วิทยาเขตอุเทนถวาย",nameEn:"Rajamangala UT Tawan-ok – Uthenthawai (Pathum Wan)",abbr:"RMUTTO",campus:"main",type:"public",cat:"rajamangala",major:false,diff:5,district:"ปทุมวัน",distKey:"ปทุมวัน",focus:"วิศวกรรม / สถาปัตยกรรม / บริหาร",fee:"฿40,000–100,000",feeBand:"low",focKeys:["eng","arts","biz"],lat:13.7466,lng:100.5300},
+  {name:"มทร.ตะวันออก วิทยาเขตจักรพงษภูวนาถ — วิทยาเขต",nameEn:"Rajamangala UT Tawan-ok – Chakrabongse (Din Daeng)",abbr:"RMUTTO",campus:"satellite",type:"public",cat:"rajamangala",major:false,diff:5,district:"ดินแดง",distKey:"ดินแดง",focus:"บริหาร / ศิลปศาสตร์",fee:"฿40,000–100,000",feeBand:"low",focKeys:["biz","arts"],lat:13.7771,lng:100.5600},
+  // ══ SPECIALIZED PUBLIC ══
+  {name:"ราชวิทยาลัยจุฬาภรณ์",nameEn:"Chulabhorn Royal Academy",abbr:"CRA",campus:"main",type:"public",cat:"college",major:false,diff:9,district:"หลักสี่",distKey:"หลักสี่",focus:"วิทยาศาสตร์ / เทคโนโลยี / แพทยศาสตร์",fee:"รัฐบาลสนับสนุน",feeBand:"free",focKeys:["med","eng"],lat:13.8820,lng:100.5787},
+  {name:"สถาบันดนตรีกัลยาณิวัฒนา",nameEn:"Princess Galyani Vadhana Inst. of Music",abbr:"PGVIM",campus:"main",type:"public",cat:"college",major:false,diff:8,district:"คลองสาน",distKey:"คลองสาน",focus:"ดนตรีการแสดง / ดนตรีศึกษา",fee:"฿60,000–150,000",feeBand:"low",focKeys:["music"],lat:13.7302,lng:100.5085},
+  {name:"สถาบันเทคโนโลยีปทุมวัน",nameEn:"Pathumwan Institute of Technology",abbr:"PIT",campus:"main",type:"public",cat:"college",major:false,diff:6,district:"ปทุมวัน",distKey:"ปทุมวัน",focus:"เทคโนโลยี / วิศวกรรม",fee:"฿40,000–100,000",feeBand:"low",focKeys:["eng"],lat:13.7438,lng:100.5293},
+  {name:"สถาบันบัณฑิตพัฒนศิลป์ (จตุจักร)",nameEn:"Bunditpatanasilpa Institute",abbr:"BPI",campus:"main",type:"public",cat:"college",major:false,diff:7,district:"จตุจักร",distKey:"จตุจักร",focus:"ศิลปะ / นาฏศิลป์ / ดนตรีไทย",fee:"฿30,000–80,000",feeBand:"low",focKeys:["arts","music"],lat:13.8050,lng:100.5555},
+  {name:"มหาจุฬาลงกรณราชวิทยาลัย",nameEn:"Mahachulalongkornrajavidyalaya Univ.",abbr:"MCU",campus:"main",type:"public",cat:"college",major:false,diff:5,district:"พระนคร",distKey:"พระนคร",focus:"พุทธศาสตร์ / ครุศาสตร์",fee:"฿20,000–60,000",feeBand:"low",focKeys:["buddha","edu"],lat:13.7553,lng:100.4948},
+  {name:"มหาวิทยาลัยมหามกุฏราชวิทยาลัย",nameEn:"Mahamakut Buddhist University",abbr:"MBU",campus:"main",type:"public",cat:"college",major:false,diff:4,district:"พระนคร",distKey:"พระนคร",focus:"พุทธศาสตร์",fee:"฿15,000–40,000",feeBand:"low",focKeys:["buddha"],lat:13.7561,lng:100.4935},
+  {name:"สถาบันพระบรมราชชนก (สำนักงานใหญ่)",nameEn:"Praboromarajchanok Institute – HQ",abbr:"PI",campus:"main",type:"public",cat:"college",major:false,diff:7,district:"นนทบุรี",distKey:"outside",focus:"พยาบาล / สาธารณสุข",fee:"฿30,000–80,000",feeBand:"low",focKeys:["med"],lat:11.5610,lng:99.6280},
+  {name:"สถาบันการพยาบาลศรีสวรินทิรา (สภากาชาดไทย)",nameEn:"Srisavarindhira – Red Cross Nursing",abbr:"STIN",campus:"main",type:"public",cat:"college",major:false,diff:8,district:"ปทุมวัน",distKey:"ปทุมวัน",focus:"พยาบาล / สภากาชาด",fee:"฿80,000–160,000",feeBand:"low",focKeys:["med"],lat:13.7411,lng:100.5295},
+  // ══ MILITARY / POLICE ══
+  {name:"วิทยาลัยแพทยศาสตร์พระมงกุฎเกล้า",nameEn:"Phramongkutklao College of Medicine",abbr:"PCM",campus:"main",type:"public",cat:"military",major:false,diff:9,district:"ราชเทวี",distKey:"ราชเทวี",focus:"แพทยศาสตร์ทหาร",fee:"รัฐบาลสนับสนุน",feeBand:"free",focKeys:["med","mil"],lat:13.7620,lng:100.5380},
+  {name:"โรงเรียนนายเรืออากาศ",nameEn:"Royal Thai Air Force Academy",abbr:"RTAFA",campus:"main",type:"public",cat:"military",major:false,diff:9,district:"ดอนเมือง",distKey:"ดอนเมือง",focus:"การบิน / วิศวกรรมทหาร",fee:"รัฐบาลสนับสนุน",feeBand:"free",focKeys:["mil","eng"],lat:13.9058,lng:100.6068},
+  {name:"โรงเรียนนายร้อยตำรวจ",nameEn:"Royal Police Cadet Academy",abbr:"RPCA",campus:"main",type:"public",cat:"military",major:false,diff:9,district:"สามพราน (นครปฐม)",distKey:"outside",focus:"ตำรวจ / กฎหมาย",fee:"รัฐบาลสนับสนุน",feeBand:"free",focKeys:["mil","law"],lat:13.7220,lng:100.0420},
+  {name:"วิทยาลัยป้องกันราชอาณาจักร (ดินแดง)",nameEn:"National Defence College",abbr:"NDC",campus:"main",type:"public",cat:"military",major:false,diff:9,district:"ดินแดง",distKey:"ดินแดง",focus:"การป้องกันประเทศ (ระดับสูง)",fee:"รัฐบาลสนับสนุน",feeBand:"free",focKeys:["mil","law"],lat:13.7760,lng:100.5580},
+  // ══ PRIVATE UNIVERSITIES ══
+  {name:"ม.อัสสัมชัญ ABAC (วิทยาเขตหัวหมาก)",nameEn:"Assumption University – Hua Mak",abbr:"ABAC",campus:"main",type:"private",cat:"university",major:true,diff:5,district:"บางกะปิ",distKey:"บางกะปิ",focus:"บริหาร / วิศวกรรม / ศิลปะ",fee:"฿250,000–500,000",feeBand:"high",focKeys:["biz","eng","arts"],lat:13.7541,lng:100.6278},
+  {name:"ม.อัสสัมชัญ ABAC (วิทยาเขตสุวรรณภูมิ) — วิทยาเขต",nameEn:"Assumption University – Suvarnabhumi Campus",abbr:"ABAC",campus:"satellite",type:"private",cat:"university",major:true,diff:5,district:"บางนา",distKey:"outside",focus:"บริหาร / นิติศาสตร์ / นานาชาติ",fee:"฿250,000–500,000",feeBand:"high",focKeys:["biz","law"],lat:13.6893,lng:100.7530},
+  {name:"ม.กรุงเทพ (วิทยาเขตกล้วยน้ำไท)",nameEn:"Bangkok University – Kluai Nam Thai",abbr:"BU",campus:"main",type:"private",cat:"university",major:true,diff:4,district:"คลองเตย",distKey:"คลองเตย",focus:"นิเทศศาสตร์ / บริหาร / ออกแบบ",fee:"฿200,000–400,000",feeBand:"mid",focKeys:["comm","biz","arts"],lat:13.7115,lng:100.5829},
+  {name:"ม.กรุงเทพ (วิทยาเขตรังสิต) — วิทยาเขต",nameEn:"Bangkok University – Rangsit Campus",abbr:"BU",campus:"satellite",type:"private",cat:"university",major:true,diff:4,district:"ปทุมธานี",distKey:"outside",focus:"วิศวกรรม / เทคโนโลยีสารสนเทศ / การจัดการ",fee:"฿200,000–400,000",feeBand:"mid",focKeys:["eng","biz"],lat:14.0160,lng:100.6140},
+  {name:"ม.รังสิต",nameEn:"Rangsit University",abbr:"RSU",campus:"main",type:"private",cat:"university",major:true,diff:4,district:"ปทุมธานี",distKey:"outside",focus:"แพทยศาสตร์ / วิศวกรรม / นิเทศศาสตร์",fee:"฿200,000–800,000",feeBand:"high",focKeys:["med","eng","comm"],lat:13.9653,lng:100.5873},
+  {name:"ม.ธุรกิจบัณฑิตย์",nameEn:"Dhurakij Pundit University",abbr:"DPU",campus:"main",type:"private",cat:"university",major:true,diff:4,district:"หลักสี่",distKey:"หลักสี่",focus:"บริหาร / นิติศาสตร์ / เทคโนโลยีสารสนเทศ",fee:"฿180,000–360,000",feeBand:"mid",focKeys:["biz","law"],lat:13.8703,lng:100.5515},
+  {name:"ม.หอการค้าไทย (UTCC)",nameEn:"UTCC – Din Daeng",abbr:"UTCC",campus:"main",type:"private",cat:"university",major:true,diff:5,district:"ดินแดง",distKey:"ดินแดง",focus:"พาณิชยศาสตร์ / บัญชี / วิศวกรรม",fee:"฿200,000–400,000",feeBand:"mid",focKeys:["biz","eng"],lat:13.7808,lng:100.5605},
+  {name:"ม.ศรีปทุม",nameEn:"Sripatum University",abbr:"SPU",campus:"main",type:"private",cat:"university",major:true,diff:3,district:"บางเขน",distKey:"บางเขน",focus:"บริหาร / วิศวกรรม / นิติศาสตร์",fee:"฿160,000–320,000",feeBand:"mid",focKeys:["biz","eng","law"],lat:13.8620,lng:100.5685},
+  {name:"ม.สยาม",nameEn:"Siam University",abbr:"SIU",campus:"main",type:"private",cat:"university",major:false,diff:3,district:"ภาษีเจริญ",distKey:"ภาษีเจริญ",focus:"บริหาร / วิศวกรรม / ครุศาสตร์",fee:"฿160,000–320,000",feeBand:"mid",focKeys:["biz","eng","edu"],lat:13.7262,lng:100.4713},
+  {name:"ม.เกษมบัณฑิต",nameEn:"Kasem Bundit University",abbr:"KBU",campus:"main",type:"private",cat:"university",major:false,diff:3,district:"ประเวศ",distKey:"ประเวศ",focus:"วิศวกรรม / บริหาร / นิติศาสตร์",fee:"฿140,000–280,000",feeBand:"mid",focKeys:["eng","biz","law"],lat:13.7170,lng:100.6500},
+  {name:"ม.เซนต์จอห์น",nameEn:"Saint John's University",abbr:"SJU",campus:"main",type:"private",cat:"university",major:false,diff:3,district:"วังทองหลาง",distKey:"วังทองหลาง",focus:"บริหาร / พยาบาล / นิติศาสตร์",fee:"฿160,000–320,000",feeBand:"mid",focKeys:["biz","med","law"],lat:13.7700,lng:100.6030},
+  {name:"ม.นานาชาติแสตมฟอร์ด",nameEn:"Stamford International University",abbr:"STIU",campus:"main",type:"private",cat:"university",major:false,diff:3,district:"วัฒนา",distKey:"วัฒนา",focus:"บริหาร / การโรงแรม / นิเทศศาสตร์",fee:"฿280,000–560,000",feeBand:"high",focKeys:["biz","hotel","comm"],lat:13.7453,lng:100.5592},
+  {name:"ม.เกริก",nameEn:"Krirk University",abbr:"KRU",campus:"main",type:"private",cat:"university",major:false,diff:3,district:"ดอนเมือง",distKey:"ดอนเมือง",focus:"นิติศาสตร์ / บริหาร / นิเทศศาสตร์",fee:"฿140,000–280,000",feeBand:"mid",focKeys:["law","biz","comm"],lat:13.8800,lng:100.5870},
+  {name:"ม.รัตนบัณฑิต",nameEn:"Rattana Bundit University",abbr:"RBAC",campus:"main",type:"private",cat:"university",major:false,diff:2,district:"มีนบุรี",distKey:"มีนบุรี",focus:"บริหาร / พยาบาล / วิศวกรรม",fee:"฿120,000–240,000",feeBand:"mid",focKeys:["biz","med","eng"],lat:13.8050,lng:100.6800},
+  {name:"ม.เทคโนโลยีมหานคร",nameEn:"Mahanakhon Univ. of Technology",abbr:"MUT",campus:"main",type:"private",cat:"university",major:false,diff:3,district:"หนองแขม",distKey:"หนองแขม",focus:"วิศวกรรม / เทคโนโลยีสารสนเทศ / บริหาร",fee:"฿160,000–300,000",feeBand:"mid",focKeys:["eng","biz"],lat:13.6950,lng:100.4480},
+  {name:"ม.นอร์ทกรุงเทพ",nameEn:"North Bangkok University",abbr:"NBU",campus:"main",type:"private",cat:"university",major:false,diff:3,district:"บางเขน",distKey:"บางเขน",focus:"นิติศาสตร์ / บริหาร / วิศวกรรม",fee:"฿140,000–280,000",feeBand:"mid",focKeys:["law","biz","eng"],lat:13.8750,lng:100.5930},
+  {name:"ม.กรุงเทพธนบุรี",nameEn:"Bangkok Thonburi University",abbr:"BTU",campus:"main",type:"private",cat:"university",major:false,diff:2,district:"ทวีวัฒนา",distKey:"ทวีวัฒนา",focus:"วิทยาศาสตร์สุขภาพ / วิศวกรรม / ครุศาสตร์",fee:"฿100,000–200,000",feeBand:"mid",focKeys:["med","eng","edu"],lat:13.7693,lng:100.3455},
+  {name:"ม.หัวเฉียวเฉลิมพระเกียรติ",nameEn:"Huachiew Chalermprakiet Univ.",abbr:"HCU",campus:"main",type:"private",cat:"university",major:false,diff:4,district:"สมุทรปราการ",distKey:"outside",focus:"เภสัชศาสตร์ / บริหาร / ครุศาสตร์",fee:"฿160,000–400,000",feeBand:"mid",focKeys:["med","biz","edu"],lat:13.6530,lng:100.6280},
+  {name:"ม.สุวรรณภูมิ",nameEn:"Bangkok Suvarnabhumi University",abbr:"BSU",campus:"main",type:"private",cat:"university",major:false,diff:3,district:"บางพลี (สมุทรปราการ)",distKey:"outside",focus:"บริหาร / เทคโนโลยีสารสนเทศ / วิศวกรรม",fee:"฿120,000–240,000",feeBand:"mid",focKeys:["biz","eng"],lat:13.6800,lng:100.7300},
+  {name:"ม.เอเชียอาคเนย์",nameEn:"South-East Asia University",abbr:"SAU",campus:"main",type:"private",cat:"university",major:false,diff:3,district:"บางพลัด",distKey:"บางพลัด",focus:"บริหาร / นิติศาสตร์ / เทคโนโลยีสารสนเทศ",fee:"฿120,000–260,000",feeBand:"mid",focKeys:["biz","law"],lat:13.7880,lng:100.4920},
+  // ══ PRIVATE COLLEGES ══
+  {name:"วิทยาลัยดุสิตธานี",nameEn:"Dusit Thani College",abbr:"DTC",campus:"main",type:"private",cat:"college",major:false,diff:5,district:"ยานนาวา",distKey:"ยานนาวา",focus:"การโรงแรม / การจัดการ / การครัว",fee:"฿200,000–400,000",feeBand:"mid",focKeys:["hotel"],lat:13.7062,lng:100.5277},
+  {name:"SAE Institute กรุงเทพ",nameEn:"SAE Institute Bangkok",abbr:"SAE",campus:"main",type:"private",cat:"college",major:false,diff:3,district:"วัฒนา",distKey:"วัฒนา",focus:"เสียง / ภาพยนตร์ / เกม",fee:"฿280,000–500,000",feeBand:"high",focKeys:["arts","comm"],lat:13.7420,lng:100.5490},
+  {name:"วิทยาลัยทองสุข",nameEn:"Thongsook College",abbr:"TSC",campus:"main",type:"private",cat:"college",major:false,diff:2,district:"พระโขนง",distKey:"พระโขนง",focus:"บริหาร / การท่องเที่ยว / นิเทศศาสตร์",fee:"฿80,000–180,000",feeBand:"low",focKeys:["biz","hotel","comm"],lat:13.7015,lng:100.5850},
+  {name:"ม.ธนบุรี",nameEn:"Thonburi University",abbr:"TBU",campus:"main",type:"private",cat:"college",major:false,diff:2,district:"ธนบุรี",distKey:"ธนบุรี",focus:"เทคโนโลยี / บริหาร / ครุศาสตร์",fee:"฿80,000–160,000",feeBand:"low",focKeys:["eng","biz","edu"],lat:13.7248,lng:100.4639},
+  {name:"RIC-Regents International College",nameEn:"RIC-Regents International College",abbr:"RIC",campus:"main",type:"private",cat:"college",major:false,diff:3,district:"วัฒนา",distKey:"วัฒนา",focus:"บริหารนานาชาติ / นิเทศศาสตร์",fee:"฿300,000–600,000",feeBand:"high",focKeys:["biz","comm"],lat:13.7395,lng:100.5610},
+  {name:"สถาบันเทคโนโลยีไทย-ญี่ปุ่น",nameEn:"Thai-Nichi Institute of Technology",abbr:"TNI",campus:"main",type:"private",cat:"college",major:false,diff:5,district:"สวนหลวง",distKey:"สวนหลวง",focus:"วิศวกรรม / เทคโนโลยีสารสนเทศ",fee:"฿200,000–350,000",feeBand:"mid",focKeys:["eng"],lat:13.7382,lng:100.6282},
+  // ══ INTERNATIONAL ══
+  {name:"ม.เว็บสเตอร์ กรุงเทพ",nameEn:"Webster University Bangkok",abbr:"WUB",campus:"main",type:"private",cat:"international",major:false,diff:4,district:"วัฒนา",distKey:"วัฒนา",focus:"ศิลปศาสตร์ / บริหาร / ความสัมพันธ์ระหว่างประเทศ",fee:"฿400,000–700,000",feeBand:"vhigh",focKeys:["biz","law"],lat:13.7470,lng:100.5625},
+  {name:"CMKL University (ใน KMITL)",nameEn:"CMKL University",abbr:"CMKL",campus:"main",type:"private",cat:"international",major:false,diff:7,district:"ลาดกระบัง",distKey:"ลาดกระบัง",focus:"วิศวกรรมไฟฟ้า / คอมพิวเตอร์ (CMU joint)",fee:"฿600,000–1,200,000",feeBand:"vhigh",focKeys:["eng"],lat:13.7260,lng:100.7770},
+  {name:"Harbour.Space @ UTCC (ดินแดง)",nameEn:"Harbour.Space @ UTCC",abbr:"HS@UTCC",campus:"main",type:"private",cat:"international",major:false,diff:5,district:"ดินแดง",distKey:"ดินแดง",focus:"Tech Entrepreneurship / ออกแบบ / การตลาดดิจิทัล",fee:"฿800,000–1,500,000",feeBand:"vhigh",focKeys:["biz","arts"],lat:13.7820,lng:100.5620},
+];
+
+const FILT={type:'all',cat:'all',diff:'all',size:'all',fee:'all',dist:'all',foc:'all',campus:'all'};
+let map,markers=[],srIdx=-1;
+
+function diffColor(d){return d>=7?'#A51828':d>=4?'#BA7517':'#1D9E75'}
+function diffLabel(d){return d>=9?'ยากมาก (9–10)':d>=7?'ยาก (7–8)':d>=5?'ปานกลาง (5–6)':d>=3?'ค่อนข้างง่าย (3–4)':'ระบบเปิด (1–2)'}
+function feeLabel(b){return{free:'รัฐบาลสนับสนุน',low:'ต่ำกว่า ฿100K',mid:'฿100K–300K',high:'฿300K–600K',vhigh:'สูงกว่า ฿600K'}[b]||b}
+const CAT_LABEL={university:'มหาวิทยาลัย',rajabhat:'มรภ.',rajamangala:'มทร.',military:'ทหาร/ตำรวจ',college:'วิทยาลัย/สถาบัน',international:'นานาชาติ'};
+
+function makeIcon(u,hl){
+  const col=diffColor(u.diff);
+  const isSat=u.campus==='satellite';
+  const sz=u.major?(isSat?14:20):(isSat?10:13);
+  const ring=u.major?'#185FA5':'#666';
+  const glow=hl?'box-shadow:0 0 0 4px rgba(165,24,40,0.25),0 1px 5px rgba(0,0,0,0.3);':'box-shadow:0 1px 5px rgba(0,0,0,0.35);';
+  // satellites get diamond shape via rotation
+  const shape=isSat
+    ?`border-radius:3px;transform:rotate(45deg);`
+    :`border-radius:50%;`;
+  return L.divIcon({className:'',html:`<div style="width:${sz}px;height:${sz}px;${shape}background:${col};border:2px solid ${ring};${glow}cursor:pointer"></div>`,iconAnchor:[sz/2,sz/2],iconSize:[sz,sz]});
+}
+
+function matches(u){
+  if(FILT.type!=='all'&&u.type!==FILT.type)return false;
+  if(FILT.cat!=='all'&&u.cat!==FILT.cat)return false;
+  if(FILT.size==='major'&&!u.major)return false;
+  if(FILT.size==='minor'&&u.major)return false;
+  if(FILT.diff==='hard'&&u.diff<7)return false;
+  if(FILT.diff==='mid'&&(u.diff<4||u.diff>6))return false;
+  if(FILT.diff==='easy'&&u.diff>3)return false;
+  if(FILT.fee!=='all'&&u.feeBand!==FILT.fee)return false;
+  if(FILT.dist!=='all'&&u.distKey!==FILT.dist)return false;
+  if(FILT.foc!=='all'&&!u.focKeys.includes(FILT.foc))return false;
+  if(FILT.campus!=='all'&&u.campus!==FILT.campus)return false;
+  return true;
+}
+
+let highlighted=null;
+function showInfo(u){
+  const imgUrl=IMGS[u.abbr],em=EMOJI[u.abbr]||'🎓';
+  document.getElementById('infoImg').innerHTML=imgUrl
+    ?`<img src="${imgUrl}" class="info-img" alt="${u.name}" onerror="this.parentNode.innerHTML='<div class=\\'info-img-ph\\'><span>${em}</span></div>'" loading="lazy">`
+    :`<div class="info-img-ph"><span>${em}</span></div>`;
+  document.getElementById('iName').innerHTML=u.name+`<span class="campus-badge ${u.campus==='satellite'?'sat-badge':'main-badge'}">${u.campus==='satellite'?'วิทยาเขตสาขา':'วิทยาเขตหลัก'}</span>`;
+  document.getElementById('iAbbr').textContent=`${u.abbr} · ${u.nameEn}`;
+  const dc=diffColor(u.diff);
+  const fc={free:'#185FA5',low:'#1D9E75',mid:'#BA7517',high:'#E24B4A',vhigh:'#7B1FA2'}[u.feeBand]||'#555';
+  document.getElementById('iRows').innerHTML=`
+    <div class="irow"><span class="ik">ประเภท</span><span class="iv"><span class="${u.type==='public'?'pub-b':'prv-b'}">${u.type==='public'?'รัฐบาล':'เอกชน'}</span></span></div>
+    <div class="irow"><span class="ik">หมวดหมู่</span><span class="iv">${CAT_LABEL[u.cat]||u.cat}</span></div>
+    <div class="irow"><span class="ik">เขต</span><span class="iv">${u.district}</span></div>
+    <div class="irow"><span class="ik">สาขาเด่น</span><span class="iv">${u.focus}</span></div>
+    <div class="irow"><span class="ik">ความยาก</span><span class="iv"><span class="dpill" style="background:${dc}18;color:${dc}">${diffLabel(u.diff)}</span></span></div>
+    <div class="irow"><span class="ik">ค่าเล่าเรียน</span><span class="iv">${u.fee}</span></div>
+    <div class="irow"><span class="ik">ระดับค่าเล่าเรียน</span><span class="iv"><span class="dpill" style="background:${fc}15;color:${fc}">${feeLabel(u.feeBand)}</span></span></div>
+  `;
+  document.getElementById('infoPanel').style.display='block';
+}
+window.closeInfo=function(){
+  document.getElementById('infoPanel').style.display='none';
+  if(highlighted){highlighted.setIcon(makeIcon(highlighted.inst,false));highlighted=null;}
+};
+
+function flyTo(u){
+  const m=markers.find(x=>x.inst===u);
+  if(!m)return;
+  if(!map.hasLayer(m))m.addTo(map);
+  map.flyTo([u.lat,u.lng],14,{duration:0.8});
+  showInfo(u);
+  if(highlighted&&highlighted!==m)highlighted.setIcon(makeIcon(highlighted.inst,false));
+  highlighted=m;m.setIcon(makeIcon(u,true));
+}
+
+function applyFilters(){
+  let n=0;
+  markers.forEach(m=>{
+    if(matches(m.inst)){if(!map.hasLayer(m))m.addTo(map);n++;}
+    else if(map.hasLayer(m))map.removeLayer(m);
+  });
+  document.getElementById('countBadge').textContent=`แสดง ${n} สถาบัน`;
+}
+window.setF=function(btn){
+  const f=btn.dataset.f,v=btn.dataset.v;
+  document.querySelectorAll(`.fb[data-f="${f}"]`).forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');FILT[f]=v;applyFilters();
+};
+window.tp=function(bodyId,chevId){
+  document.getElementById(bodyId).classList.toggle('collapsed');
+  document.getElementById(chevId).classList.toggle('open');
+};
+
+// ── SEARCH with fuzzy approximate matching ──
+let srHits=[];
+function score(u,q){
+  const n=u.name.toLowerCase(),en=u.nameEn.toLowerCase(),ab=u.abbr.toLowerCase(),d=u.district,f=u.focus;
+  if(ab===q)return 100;
+  if(n.includes(q)||en.includes(q))return 90;
+  if(ab.startsWith(q))return 80;
+  if(d.includes(q))return 70;
+  if(f.toLowerCase().includes(q))return 60;
+  // character overlap for approximate
+  let overlap=0;for(const c of q){if(n.includes(c)||en.includes(c))overlap++;}
+  return Math.floor((overlap/q.length)*50);
+}
+function renderSR(hits,q){
+  const dr=document.getElementById('srDropdown');
+  if(!hits.length){dr.innerHTML='<div class="sr-no">ไม่พบผลลัพธ์</div>';dr.style.display='block';return;}
+  dr.innerHTML=hits.map((u,i)=>{
+    const typeC=u.type==='public'?'#0a6640':'#7a4700';
+    const typeBg=u.type==='public'?'#e1f5ee':'#fef0d8';
+    const satLabel=u.campus==='satellite'?' <span style="color:#3949ab;font-size:9px">(สาขา)</span>':'';
+    return `<div class="sr-item${i===srIdx?' active':''}" onmousedown="pickSR(${INSTS.indexOf(u)})">
+      <div class="sr-item-name">${u.name}${satLabel}</div>
+      <div class="sr-item-sub">
+        <span class="sr-badge" style="background:${typeBg};color:${typeC}">${u.type==='public'?'รัฐ':'เอกชน'}</span>
+        <span>${u.abbr}</span>
+        <span>${u.district}</span>
+        <span>${CAT_LABEL[u.cat]||u.cat}</span>
+      </div>
+    </div>`;
+  }).join('');
+  dr.style.display='block';
+}
+window.onSearch=function(){
+  const raw=document.getElementById('searchInput').value;
+  const q=raw.trim().toLowerCase();
+  document.getElementById('searchClear').style.display=raw?'block':'none';
+  srIdx=-1;
+  const dr=document.getElementById('srDropdown');
+  if(!q){dr.style.display='none';srHits=[];return;}
+  srHits=INSTS.map(u=>({u,s:score(u,q)})).filter(x=>x.s>20).sort((a,b)=>b.s-a.s).map(x=>x.u).slice(0,10);
+  renderSR(srHits,q);
+};
+window.onKey=function(e){
+  const dr=document.getElementById('srDropdown');
+  if(dr.style.display==='none'||!srHits.length)return;
+  if(e.key==='ArrowDown'){srIdx=Math.min(srIdx+1,srHits.length-1);renderSR(srHits,'');}
+  else if(e.key==='ArrowUp'){srIdx=Math.max(srIdx-1,-1);renderSR(srHits,'');}
+  else if(e.key==='Enter'&&srIdx>=0){pickSR(INSTS.indexOf(srHits[srIdx]));}
+  else if(e.key==='Escape'){dr.style.display='none';}
+};
+window.pickSR=function(idx){
+  const u=INSTS[idx];
+  document.getElementById('searchInput').value=u.name;
+  document.getElementById('searchClear').style.display='block';
+  document.getElementById('srDropdown').style.display='none';
+  srHits=[];srIdx=-1;
+  flyTo(u);
+};
+window.clearSearch=function(){
+  document.getElementById('searchInput').value='';
+  document.getElementById('searchClear').style.display='none';
+  document.getElementById('srDropdown').style.display='none';
+  srHits=[];srIdx=-1;
+};
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.search-wrap'))
+    document.getElementById('srDropdown').style.display='none';
+});
+
+function initMap(){
+  map=L.map('map',{zoomControl:true,attributionControl:true}).setView([13.756,100.540],11);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png',{
+    attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
+    subdomains:'abcd',maxZoom:19
+  }).addTo(map);
+  fetch('https://cdn.jsdelivr.net/gh/pcrete/gsvloader-demo@master/geojson/Bangkok-districts.geojson')
+    .then(r=>r.json()).then(gj=>{
+      L.geoJSON(gj,{
+        style:{fillColor:'#185FA5',fillOpacity:0.06,color:'#185FA5',weight:1.5,opacity:0.5},
+        onEachFeature:(f,layer)=>{
+          const n=f.properties.dname_e||f.properties.DNAME_E||f.properties.name||'';
+          if(n)layer.bindTooltip(n,{permanent:false,direction:'center',opacity:0.85});
+        }
+      }).addTo(map);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:19}).addTo(map);
+    }).catch(()=>{
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'&copy; OSM &copy; CARTO',subdomains:'abcd',maxZoom:19}).addTo(map);
+    });
+  INSTS.forEach(u=>{
+    const m=L.marker([u.lat,u.lng],{icon:makeIcon(u,false),zIndexOffset:u.major?(u.campus==='main'?1000:500):0});
+    m.inst=u;
+    m.on('click',()=>{
+      if(highlighted&&highlighted!==m)highlighted.setIcon(makeIcon(highlighted.inst,false));
+      highlighted=m;m.setIcon(makeIcon(u,true));showInfo(u);
+    });
+    markers.push(m);m.addTo(map);
+  });
+  document.getElementById('countBadge').textContent=`แสดง ${INSTS.length} สถาบัน`;
+}
+initMap();
+</script>
