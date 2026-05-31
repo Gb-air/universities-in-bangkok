@@ -41,6 +41,18 @@ body{font-family:'Sarabun',system-ui,sans-serif}
 .info{position:absolute;top:10px;right:10px;z-index:1000;width:232px;background:#fff;border:0.5px solid rgba(0,0,0,0.13);border-radius:12px;display:none;box-shadow:0 2px 14px rgba(0,0,0,0.12);overflow:hidden;max-height:666px;overflow-y:auto}
 .info-img{width:100%;height:118px;object-fit:cover;display:block;background:#f0f0f0}
 .info-img-ph{width:100%;height:118px;background:linear-gradient(135deg,#f5e6e6,#fcdede);display:flex;align-items:center;justify-content:center;font-size:36px}
+
+/* IMAGE SLIDER */
+.slider-wrap{position:relative;width:100%;height:130px;overflow:hidden;background:#eee}
+.slider-img{width:100%;height:130px;object-fit:cover;display:block;position:absolute;top:0;left:0;opacity:0;transition:opacity .35s}
+.slider-img.active{opacity:1}
+.slider-ph{width:100%;height:130px;background:linear-gradient(135deg,#f5e6e6,#fce4e4);display:flex;align-items:center;justify-content:center;font-size:40px}
+.sl-prev,.sl-next{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,0.35);border:none;color:#fff;font-size:16px;padding:4px 8px;cursor:pointer;border-radius:4px;z-index:5;line-height:1}
+.sl-prev{left:4px}.sl-next{right:4px}
+.sl-dots{position:absolute;bottom:5px;left:50%;transform:translateX(-50%);display:flex;gap:4px;z-index:5}
+.sl-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.55);cursor:pointer;transition:background .2s}
+.sl-dot.on{background:#fff}
+  
 .info-body{padding:11px 13px 13px}
 .iname{font-size:13px;font-weight:700;color:#111;margin-bottom:2px;line-height:1.35}
 .iabbr{font-size:10px;color:#999;margin-bottom:8px}
@@ -195,6 +207,7 @@ body{font-family:'Sarabun',system-ui,sans-serif}
 
   <div class="info" id="infoPanel">
     <button class="info-close" onclick="closeInfo()">✕</button>
+    <div class="slider-wrap" id="sliderWrap"></div>
     <div id="infoImg"></div>
     <div class="info-body">
       <div class="iname" id="iName"></div>
@@ -300,6 +313,32 @@ const INSTS=[
   {name:"Harbour.Space @ UTCC (ดินแดง)",nameEn:"Harbour.Space @ UTCC",abbr:"HS@UTCC",campus:"main",type:"private",cat:"international",major:false,diff:5,district:"ดินแดง",distKey:"ดินแดง",focus:"Tech Entrepreneurship / ออกแบบ / การตลาดดิจิทัล",fee:"฿800,000–1,500,000",feeBand:"vhigh",focKeys:["biz","arts"],lat:13.7820,lng:100.5620},
 ];
 
+// ── SLIDER ──
+let sliderState={imgs:[],cur:0,timers:[]};
+function buildSlider(imgKey,fallbackEmoji){
+  const imgs=IMGS[imgKey]||[];
+  sliderState={imgs,cur:0,timers:[]};
+  const wrap=document.getElementById('sliderWrap');
+  if(!imgs.length){wrap.innerHTML=`<div class="slider-ph">${fallbackEmoji}</div>`;return;}
+  let html=imgs.map((src,i)=>`<img class="slider-img${i===0?' active':''}" src="${src}" alt="campus ${i+1}" onerror="this.style.display='none'">`).join('');
+  if(imgs.length>1){
+    html+=`<button class="sl-prev" onclick="slideBy(-1)">‹</button><button class="sl-next" onclick="slideBy(1)">›</button>`;
+    html+=`<div class="sl-dots">${imgs.map((_,i)=>`<div class="sl-dot${i===0?' on':''}" onclick="slideTo(${i})"></div>`).join('')}</div>`;
+  }
+  wrap.innerHTML=html;
+}
+window.slideBy=function(d){slideTo((sliderState.cur+d+sliderState.imgs.length)%sliderState.imgs.length)};
+window.slideTo=function(i){
+  const imgs=document.querySelectorAll('.slider-img');
+  const dots=document.querySelectorAll('.sl-dot');
+  if(!imgs.length)return;
+  imgs[sliderState.cur].classList.remove('active');
+  if(dots.length)dots[sliderState.cur].classList.remove('on');
+  sliderState.cur=i;
+  imgs[i].classList.add('active');
+  if(dots.length)dots[i].classList.add('on');
+};
+
 const FILT={type:'all',cat:'all',diff:'all',size:'all',fee:'all',dist:'all',foc:'all',campus:'all'};
 let map,markers=[],srIdx=-1;
 
@@ -338,7 +377,8 @@ function matches(u){
 
 let highlighted=null;
 function showInfo(u){
-  const imgUrl=IMGS[u.abbr],em=EMOJI[u.abbr]||'🎓';
+  window._lastU=u;
+  buildSlider(u.imgKey, EMOJI[u.abbr]||'🎓');
   document.getElementById('infoImg').innerHTML=imgUrl
     ?`<img src="${imgUrl}" class="info-img" alt="${u.name}" onerror="this.parentNode.innerHTML='<div class=\\'info-img-ph\\'><span>${em}</span></div>'" loading="lazy">`
     :`<div class="info-img-ph"><span>${em}</span></div>`;
