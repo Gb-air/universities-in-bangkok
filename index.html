@@ -201,19 +201,19 @@ body{font-family:'Sarabun',system-ui,sans-serif;background:#f0f0f0;font-size:13p
     </div>
     <div class="pbox"><div class="phead" onclick="tp('b0','c0')"><span class="phl" id="lType">ประเภท</span><span class="chev open" id="c0">▾</span></div>
     <div class="pbody" id="b0">
-      <button class="fb on" data-f="type" data-v="all" onclick="setF(this)">ทั้งหมด</button>
+      <button class="fb on" data-f="type" data-v="all" onclick="setF(this)" data-label="lAll">ทั้งหมด</button>
       <button class="fb" data-f="type" data-v="public" onclick="setF(this)" id="lPub">รัฐบาล</button>
       <button class="fb" data-f="type" data-v="private" onclick="setF(this)" id="lPrv">เอกชน</button>
     </div></div>
     <div class="pbox"><div class="phead" onclick="tp('b1','c1')"><span class="phl" id="lCampus">วิทยาเขต</span><span class="chev open" id="c1">▾</span></div>
     <div class="pbody" id="b1">
-      <button class="fb on" data-f="campus" data-v="all" onclick="setF(this)">ทั้งหมด</button>
+      <button class="fb on" data-f="campus" data-v="all" onclick="setF(this)" data-label="lAll">ทั้งหมด</button>
       <button class="fb" data-f="campus" data-v="main" onclick="setF(this)" id="lMain">วิทยาเขตหลัก</button>
       <button class="fb" data-f="campus" data-v="satellite" onclick="setF(this)" id="lSat">วิทยาเขตสาขา</button>
     </div></div>
     <div class="pbox"><div class="phead" onclick="tp('b2','c2')"><span class="phl" id="lCat">หมวดหมู่</span><span class="chev open" id="c2">▾</span></div>
     <div class="pbody" id="b2">
-      <button class="fb on" data-f="cat" data-v="all" onclick="setF(this)">ทั้งหมด</button>
+      <button class="fb on" data-f="cat" data-v="all" onclick="setF(this)" data-label="lAll">ทั้งหมด</button>
       <button class="fb" data-f="cat" data-v="university" onclick="setF(this)" id="lCatU">มหาวิทยาลัย</button>
       <button class="fb" data-f="cat" data-v="rajabhat" onclick="setF(this)" id="lCatRb">ราชภัฏ</button>
       <button class="fb" data-f="cat" data-v="rajamangala" onclick="setF(this)" id="lCatRm">ราชมงคล</button>
@@ -223,20 +223,20 @@ body{font-family:'Sarabun',system-ui,sans-serif;background:#f0f0f0;font-size:13p
     </div></div>
     <div class="pbox"><div class="phead" onclick="tp('b3','c3')"><span class="phl" id="lDiff">ความยากในการเข้า</span><span class="chev open" id="c3">▾</span></div>
     <div class="pbody" id="b3">
-      <button class="fb on" data-f="diff" data-v="all" onclick="setF(this)">ทั้งหมด</button>
+      <button class="fb on" data-f="diff" data-v="all" onclick="setF(this)" data-label="lAll">ทั้งหมด</button>
       <button class="fb" data-f="diff" data-v="hard" onclick="setF(this)" id="lDiffH">ยากมาก 7+</button>
       <button class="fb" data-f="diff" data-v="mid" onclick="setF(this)" id="lDiffM">ปานกลาง 4–6</button>
       <button class="fb" data-f="diff" data-v="easy" onclick="setF(this)" id="lDiffE">เปิดรับ 1–3</button>
     </div></div>
     <div class="pbox"><div class="phead" onclick="tp('b4','c4')"><span class="phl" id="lScale">ขนาด</span><span class="chev open" id="c4">▾</span></div>
     <div class="pbody" id="b4">
-      <button class="fb on" data-f="size" data-v="all" onclick="setF(this)">ทั้งหมด</button>
+      <button class="fb on" data-f="size" data-v="all" onclick="setF(this)" data-label="lAll">ทั้งหมด</button>
       <button class="fb" data-f="size" data-v="major" onclick="setF(this)" id="lMajor">ขนาดใหญ่</button>
       <button class="fb" data-f="size" data-v="minor" onclick="setF(this)" id="lMinor">ขนาดเล็ก</button>
     </div></div>
     <div class="pbox"><div class="phead" onclick="tp('b5','c5')"><span class="phl" id="lFee">ค่าเล่าเรียน</span><span class="chev open" id="c5">▾</span></div>
     <div class="pbody" id="b5">
-      <button class="fb on" data-f="fee" data-v="all" onclick="setF(this)">ทั้งหมด</button>
+      <button class="fb on" data-f="fee" data-v="all" onclick="setF(this)" data-label="lAll">ทั้งหมด</button>
       <button class="fb" data-f="fee" data-v="free" onclick="setF(this)" id="lFree">รัฐสนับสนุน</button>
       <button class="fb" data-f="fee" data-v="low" onclick="setF(this)" id="lFLow">ต่ำกว่า ฿100K</button>
       <button class="fb" data-f="fee" data-v="mid" onclick="setF(this)" id="lFMid">฿100K–300K</button>
@@ -245,7 +245,7 @@ body{font-family:'Sarabun',system-ui,sans-serif;background:#f0f0f0;font-size:13p
     </div></div>
     <div class="pbox"><div class="phead" onclick="tp('b6','c6')"><span class="phl" id="lDist">เขต</span><span class="chev open" id="c6">▾</span></div>
     <div class="pbody" id="b6">
-      <button class="fb on" data-f="dist" data-v="all" onclick="setF(this)">ทั้งหมด</button>
+      <button class="fb on" data-f="dist" data-v="all" onclick="setF(this)" data-label="lAll">ทั้งหมด</button>
       <button class="fb" data-f="dist" data-v="พระนคร" onclick="setF(this)">พระนคร</button>
       <button class="fb" data-f="dist" data-v="ปทุมวัน" onclick="setF(this)">ปทุมวัน</button>
       <button class="fb" data-f="dist" data-v="ดุสิต" onclick="setF(this)">ดุสิต</button>
@@ -280,7 +280,7 @@ body{font-family:'Sarabun',system-ui,sans-serif;background:#f0f0f0;font-size:13p
     </div></div>
     <div class="pbox"><div class="phead" onclick="tp('b7','c7')"><span class="phl" id="lFocus">สาขาวิชาเด่น</span><span class="chev open" id="c7">▾</span></div>
     <div class="pbody" id="b7">
-      <button class="fb on" data-f="foc" data-v="all" onclick="setF(this)">ทั้งหมด</button>
+      <button class="fb on" data-f="foc" data-v="all" onclick="setF(this)" data-label="lAll">ทั้งหมด</button>
       <button class="fb" data-f="foc" data-v="med" onclick="setF(this)">แพทย์/สุขภาพ</button>
       <button class="fb" data-f="foc" data-v="eng" onclick="setF(this)">วิศวกรรม/เทค</button>
       <button class="fb" data-f="foc" data-v="biz" onclick="setF(this)">บริหาร/การค้า</button>
@@ -404,17 +404,17 @@ body{font-family:'Sarabun',system-ui,sans-serif;background:#f0f0f0;font-size:13p
       <div class="sr-drop" id="msrd" style="left:0;right:0"></div>
     </div>
     <div class="mob-section"><div class="mob-sec-title" id="mTypeTitle">ประเภท</div><div class="mob-pills">
-      <button class="mob-pill on" data-f="type" data-v="all" onclick="setFM(this)">ทั้งหมด</button>
+      <button class="mob-pill on" data-f="type" data-v="all" onclick="setFM(this)" data-label="mAll">ทั้งหมด</button>
       <button class="mob-pill" data-f="type" data-v="public" onclick="setFM(this)" id="mPub">รัฐบาล</button>
       <button class="mob-pill" data-f="type" data-v="private" onclick="setFM(this)" id="mPrv">เอกชน</button>
     </div></div>
     <div class="mob-section"><div class="mob-sec-title" id="mCampusTitle">วิทยาเขต</div><div class="mob-pills">
-      <button class="mob-pill on" data-f="campus" data-v="all" onclick="setFM(this)">ทั้งหมด</button>
+      <button class="mob-pill on" data-f="campus" data-v="all" onclick="setFM(this)" data-label="mAll">ทั้งหมด</button>
       <button class="mob-pill" data-f="campus" data-v="main" onclick="setFM(this)" id="mMainL">วิทยาเขตหลัก</button>
       <button class="mob-pill" data-f="campus" data-v="satellite" onclick="setFM(this)" id="mSatL">วิทยาเขตสาขา</button>
     </div></div>
     <div class="mob-section"><div class="mob-sec-title" id="mCatTitle">หมวดหมู่</div><div class="mob-pills">
-      <button class="mob-pill on" data-f="cat" data-v="all" onclick="setFM(this)">ทั้งหมด</button>
+      <button class="mob-pill on" data-f="cat" data-v="all" onclick="setFM(this)" data-label="mAll">ทั้งหมด</button>
       <button class="mob-pill" data-f="cat" data-v="university" onclick="setFM(this)" id="mCatU">มหาวิทยาลัย</button>
       <button class="mob-pill" data-f="cat" data-v="rajabhat" onclick="setFM(this)" id="mCatRb">ราชภัฏ</button>
       <button class="mob-pill" data-f="cat" data-v="rajamangala" onclick="setFM(this)" id="mCatRm">ราชมงคล</button>
@@ -423,13 +423,13 @@ body{font-family:'Sarabun',system-ui,sans-serif;background:#f0f0f0;font-size:13p
       <button class="mob-pill" data-f="cat" data-v="international" onclick="setFM(this)" id="mCatInt">นานาชาติ</button>
     </div></div>
     <div class="mob-section"><div class="mob-sec-title" id="mDiffTitle">ความยากในการเข้า</div><div class="mob-pills">
-      <button class="mob-pill on" data-f="diff" data-v="all" onclick="setFM(this)">ทั้งหมด</button>
+      <button class="mob-pill on" data-f="diff" data-v="all" onclick="setFM(this)" data-label="mAll">ทั้งหมด</button>
       <button class="mob-pill" data-f="diff" data-v="hard" onclick="setFM(this)" id="mDiffH">ยากมาก 7+</button>
       <button class="mob-pill" data-f="diff" data-v="mid" onclick="setFM(this)" id="mDiffM">ปานกลาง 4–6</button>
       <button class="mob-pill" data-f="diff" data-v="easy" onclick="setFM(this)" id="mDiffE">เปิดรับ 1–3</button>
     </div></div>
     <div class="mob-section"><div class="mob-sec-title" id="mFeeTitle">ค่าเล่าเรียน</div><div class="mob-pills">
-      <button class="mob-pill on" data-f="fee" data-v="all" onclick="setFM(this)">ทั้งหมด</button>
+      <button class="mob-pill on" data-f="fee" data-v="all" onclick="setFM(this)" data-label="mAll">ทั้งหมด</button>
       <button class="mob-pill" data-f="fee" data-v="free" onclick="setFM(this)" id="mFree">รัฐสนับสนุน</button>
       <button class="mob-pill" data-f="fee" data-v="low" onclick="setFM(this)" id="mFLow">ต่ำกว่า ฿100K</button>
       <button class="mob-pill" data-f="fee" data-v="mid" onclick="setFM(this)" id="mFMid">฿100K–300K</button>
@@ -437,7 +437,7 @@ body{font-family:'Sarabun',system-ui,sans-serif;background:#f0f0f0;font-size:13p
       <button class="mob-pill" data-f="fee" data-v="vhigh" onclick="setFM(this)" id="mFVH">สูงกว่า ฿600K</button>
     </div></div>
     <div class="mob-section"><div class="mob-sec-title" id="mFocTitle">สาขาวิชาเด่น</div><div class="mob-pills">
-      <button class="mob-pill on" data-f="foc" data-v="all" onclick="setFM(this)">ทั้งหมด</button>
+      <button class="mob-pill on" data-f="foc" data-v="all" onclick="setFM(this)" data-label="mAll">ทั้งหมด</button>
       <button class="mob-pill" data-f="foc" data-v="med" onclick="setFM(this)">แพทย์/สุขภาพ</button>
       <button class="mob-pill" data-f="foc" data-v="eng" onclick="setFM(this)">วิศวกรรม</button>
       <button class="mob-pill" data-f="foc" data-v="biz" onclick="setFM(this)">บริหาร</button>
@@ -711,7 +711,7 @@ const LABEL_MAP={
   lType:{th:'ประเภท',en:'Type'},lCampus:{th:'วิทยาเขต',en:'Campus'},lCat:{th:'หมวดหมู่',en:'Category'},
   lDiff:{th:'ความยากในการเข้า',en:'Admission Difficulty'},lScale:{th:'ขนาด',en:'Scale'},
   lFee:{th:'ค่าเล่าเรียน (ตลอดหลักสูตร)',en:'Tuition (full program)'},lDist:{th:'เขต',en:'District'},
-  lFocus:{th:'สาขาวิชาเด่น',en:'Focus Area'},
+  lFocus:{th:'สาขาวิชาเด่น',en:'Focus Area'},lAll:{th:'ทั้งหมด',en:'All'},
   lPub:{th:'รัฐบาล',en:'Public'},lPrv:{th:'เอกชน',en:'Private'},
   lMain:{th:'วิทยาเขตหลัก',en:'Main Campus'},lSat:{th:'วิทยาเขตสาขา',en:'Satellite'},
   lCatU:{th:'มหาวิทยาลัย',en:'University'},lCatRb:{th:'ราชภัฏ',en:'Rajabhat'},lCatRm:{th:'ราชมงคล',en:'Rajamangala'},
@@ -731,7 +731,7 @@ const LABEL_MAP={
   rsSizeTitle:{th:'ขนาด UI / ตัวอักษร',en:'UI / Font Size'},
   rsS11:{th:'เล็กลง (85%)',en:'Smaller (85%)'},rsS13:{th:'ปกติ (100%)',en:'Normal (100%)'},rsS15:{th:'ใหญ่ขึ้น (115%)',en:'Larger (115%)'},rsS17:{th:'ใหญ่มาก (130%)',en:'Largest (130%)'},
   mS11:{th:'เล็กลง',en:'Smaller'},mS13:{th:'ปกติ',en:'Normal'},mS15:{th:'ใหญ่ขึ้น',en:'Larger'},mS17:{th:'ใหญ่มาก',en:'Largest'},
-  mobTitle:{th:'🎓 ค้นหามหาวิทยาลัย',en:'🎓 Find Universities'},
+  mobTitle:{th:'🎓 ค้นหามหาวิทยาลัย',en:'🎓 Find Universities'},mAll:{th:'ทั้งหมด',en:'All'},
   mLangTitle:{th:'ภาษา',en:'Language'},mSizeTitle:{th:'ขนาด UI / ตัวอักษร',en:'UI / Font Size'},
   mTypeTitle:{th:'ประเภท',en:'Type'},mCampusTitle:{th:'วิทยาเขต',en:'Campus'},mCatTitle:{th:'หมวดหมู่',en:'Category'},
   mDiffTitle:{th:'ความยากในการเข้า',en:'Difficulty'},mFeeTitle:{th:'ค่าเล่าเรียน',en:'Tuition'},
@@ -753,8 +753,10 @@ function setLang(l){
   LANG=l;
   ['rsLangTH','mLangTH'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.toggle('active',l==='th');});
   ['rsLangEN','mLangEN'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.toggle('active',l==='en');});
-  Object.entries(LABEL_MAP).forEach(([id,vals])=>{
-    const el=document.getElementById(id);if(el)el.textContent=vals[l]||vals.th;
+  Object.entries(LABEL_MAP).forEach(([key,vals])=>{
+    const text=vals[l] || vals.th;
+    const el=document.getElementById(key);if(el)el.textContent=text; <!-- Single change from ID -->
+    const elements=document.querySelectorAll(`[data-label="${key}"]`);elements.forEach(e=>e.textContent=text); <!-- Multiple change from data-label -->
   });
   ['dsi','msi'].forEach(id=>{const e=document.getElementById(id);if(e)e.placeholder=l==='th'?'ค้นหาสถาบัน...':'Search institutions...';});
   <!-- Change link with the language -->
