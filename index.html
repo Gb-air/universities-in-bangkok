@@ -71,6 +71,66 @@ body{font-family:'Sarabun',system-ui,sans-serif;background:#f0f0f0;font-size:13p
 .rs-adv{font-size:.78em;font-weight:700;color:#999;padding: 3px 8px;border-radius: 4px;border-top:0.5px solid #eee;padding-top: 6px;margin-top: 12px;margin-bottom: 8px}
 .rs-adv.is-en{font-family: 'Brush Script MT', cursive;font-size:.78em;font-weight:700;color:#999;padding: 3px 8px;border-radius: 4px;border-top:0.5px solid #eee;padding-top: 6px;margin-top: 12px;margin-bottom: 8px}
 
+/* ── SMALL NOTE ── */
+/* Container for the note card */
+.note-box {
+  background-color: #fff9a6; /* Notepad pastel yellow */
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  margin: 1px 0; /* Space between the note and other content */
+  overflow: hidden;
+  transition: all 0.3s ease-in-out; /* Smooth transition for collapsing */
+}
+/* Header bar containing title and toggle button */
+.note-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: #f7ef8a; /* Darker yellow accent for header */
+  font-size: 14px;
+  font-weight: bold;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+.note-header button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  transition: transform 0.3s ease;
+}
+/* Content area where user type */
+.sticky-note {
+  padding: 12px;
+  min-height: 100px;
+  max-height: 200px; /* Maximum height when fully extended */
+  font-size: 14px;
+  line-height: 1.5;
+  outline: none;
+  overflow-y: auto;   /* Scrollbar triggers if note gets too long */
+  transition: max-height 0.3s ease-in-out, padding 0.3s ease-in-out;
+}
+/* Retracted state changes applied */
+.note-box.retracted .sticky-note {
+  max-height: 0px;
+  min-height: 0px;
+  padding-top: 0px;
+  padding-bottom: 0px;
+  overflow: hidden;
+}
+/* Rotates the button arrow icon sideways when collapsed */
+.note-box.retracted #noteToggleBtn {
+  transform: rotate(-90deg);
+}
+/* Fallback placeholder text styles */
+.sticky-note:empty:before {
+  content: attr(placeholder);
+  color: #a49e53;       /* Text color of placeholder */
+  pointer-events: none; /* Prevents clicking on the placeholder text */
+  display: block;       /* Ensures it takes up proper space */
+}
+
+
 /* ── LEGEND (fixed bottom-right, always visible on desktop) ── */
 .legend{position:absolute;bottom:28px;right:10px;z-index:1000;background:rgba(255,255,255,0.97);border:0.5px solid rgba(0,0,0,0.13);border-radius:10px;padding:9px 12px;font-size:11px;color:#555;box-shadow:0 1px 4px rgba(0,0,0,0.07);transition:right .26s cubic-bezier(.4,0,.2,1)}
 .legend.shift{right:285px}
