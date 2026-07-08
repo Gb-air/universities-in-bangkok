@@ -398,6 +398,7 @@ body{font-family:'Sarabun',system-ui,sans-serif;background:#f0f0f0;font-size:13p
           </div>
         <div class="sticky-note" contenteditable="true" id="rsMyNote" data-label="TepmyNote" placeholder="ทดโน้ตคราวๆ ที่นี้ได้นะ..."></div>
       </div>
+  </div>
     </div>
     <div class="rs-section">
   <!-- Suggestion Google Form -->
@@ -883,10 +884,7 @@ function applySize(sz, clickedEl){
 
 // ── NOTE DATA ──
 // Dictionary pairing: ('noteArea' : 'noteBox')
-const noteIds = {
-  'myNote' : 'noteBox', 
-  'rsMyNote' : 'rsNoteBox'
-};
+const noteIds = {'myNote' : 'noteBox', 'rsMyNote' : 'rsNoteBox'};
 // Loop through each ID pair automatically
 Object.keys(noteIds).forEach(noteId => {
   const myNote = document.getElementById(noteId);
