@@ -856,7 +856,7 @@ function setLang(l){
   ['rsLangEN','mLangEN'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.toggle('active',l==='en');});
   Object.entries(LABEL_MAP).forEach(([key,vals])=>{
     let text=vals[l] || vals.th;
-    if(l === 'en' && enToggleCount === 1 && vals.en_wind){text = vals.en_wind;} // Counts en toggle -->
+    if(l === 'en' && enToggleCount === 2 && vals.en_wind){text = vals.en_wind;} // Counts English Language toggle -->
     const el=document.getElementById(key);if(el){el.innerHTML=text;el.classList.toggle('is-en', l === 'en');} // Single change from ID --> <!-- Read text as raw text -->
     const elements=document.querySelectorAll(`[data-label="${key}"]`);elements.forEach(e=>{e.textContent=text;e.classList.toggle('is-en', l === 'en');}); // Multiple change from data-label -->
   });
