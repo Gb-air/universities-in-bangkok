@@ -330,6 +330,15 @@ body{font-family:'Sarabun',system-ui,sans-serif;background:#f0f0f0;font-size:13p
           <button class="rs-size-opt" data-sz="17" onclick="applySize(17,this)" id="rsS17">ใหญ่มาก (130%)</button>
         </div>
       </div>
+      <div class="rs-section">
+        <div class="note-box" id="rsNoteBox">
+          <div class="note-header">
+            <span data-label="Qnote">📝 โน๊ต</span>
+            <!-- Expand/Collapse Action Button -->
+            <button id="noteToggleBtn" onclick="toggleNoteSize('rsNoteBox')">▼</button>
+          </div>
+        <div class="sticky-note" contenteditable="true" id="rsMyNote" data-label="TepmyNote" placeholder="ทดโน้ตคราวๆ ที่นี้ได้นะ..."></div>
+      </div>
     </div>
     <div class="rs-section">
   <!-- Suggestion Google Form -->
@@ -471,6 +480,16 @@ body{font-family:'Sarabun',system-ui,sans-serif;background:#f0f0f0;font-size:13p
       <div class="lr"><span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#555;opacity:.45;font-size:8px;line-height:11px;text-align:center;color:#fff;flex-shrink:0">✕</span><span id="mL8">ปิดถาวร</span></div>
     </div>
     <div class="rs-section">
+      <div class="note-box" id="noteBox">
+        <div class="note-header">
+          <span data-label="Qnote">📝 โน๊ต</span>
+          <!-- Expand/Collapse Action Button -->
+          <button id="noteToggleBtn" onclick="toggleNoteSize('noteBox')">▼</button>
+        </div>
+      <div class="sticky-note" contenteditable="true" id="myNote" data-label="TepmyNote" placeholder="ทดโน้ตคราวๆ ที่นี้ได้นะ..."></div>
+    </div>
+  </div>
+  <div class="rs-section">
   <!-- Suggestion Google Form -->
   <a id= "mSuggestionLink" href="https://forms.gle/eFZrYZXB2LWUfm298" target="_blank" style="text-decoration: none;">
     <button class="rs-lang-btn" style="background: #A51828; color: #fff; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
@@ -687,7 +706,7 @@ const INSTS=[
   {name:"ม.อัสสัมชัญ ABAC (หัวหมาก)",nameEn:"Assumption University – Hua Mak",abbr:"ABAC",campus:"main",type:"private",cat:"university",major:true,diff:5,district:"บางกะปิ",distKey:"บางกะปิ",focus:{th:"บริหาร / วิศวกรรม / ศิลปะ",en:"Business / Engineering / Arts"},fee:"฿250,000–500,000",feeBand:"high",focKeys:["biz","eng","arts"],lat:13.7541,lng:100.6278},
   {name:"ม.อัสสัมชัญ ABAC วิทยาเขตสุวรรณภูมิ",nameEn:"Assumption University – Suvarnabhumi",abbr:"ABAC-SAT",campus:"satellite",type:"private",cat:"university",major:true,diff:5,district:"บางนา (สมุทรปราการ)",distKey:"outside",focus:{th:"บริหาร / นิติศาสตร์ / นานาชาติ",en:"Business / Law / International"},fee:"฿250,000–500,000",feeBand:"high",focKeys:["biz","law"],lat:13.6893,lng:100.7530},
   {name:"ม.กรุงเทพ (กล้วยน้ำไท)",nameEn:"Bangkok University – Kluai Nam Thai",abbr:"BU",campus:"main",type:"private",cat:"university",major:true,diff:4,district:"คลองเตย",distKey:"คลองเตย",focus:{th:"นิเทศศาสตร์ / บริหาร / ออกแบบ",en:"Comm Arts / Business / Design"},fee:"฿200,000–400,000",feeBand:"mid",focKeys:["comm","biz","arts"],lat:13.7115,lng:100.5829,closedCampus:true,closedYear:2022,closedNote:{th:"หยุดการเรียนการสอนตั้งแต่ปีการศึกษา 2565 ย้ายไปวิทยาเขตรังสิต",en:"Ceased instruction in 2022. All programs relocated to Rangsit Campus."}},
-  {name:"ม.กรุงเทพ วิทยาเขตรังสิต",nameEn:"Bangkok University – Rangsit Campus",abbr:"BU-SAT",campus:"satellite",type:"private",cat:"university",major:true,diff:4,district:"ปทุมธานี",distKey:"outside",focus:{th:"วิศวกรรม / เทคโนโลยีสารสนเทศ",en:"Engineering / Information Technology"},fee:"฿200,000–400,000",feeBand:"mid",focKeys:["eng","biz"],lat:14.0160,lng:100.6140},
+  {name:"ม.กรุงเทพ วิทยาเขตรังสิต",nameEn:"Bangkok University – Rangsit Campus",abbr:"BU-SAT",campus:"main",type:"private",cat:"university",major:true,diff:4,district:"ปทุมธานี",distKey:"outside",focus:{th:"วิศวกรรม / เทคโนโลยีสารสนเทศ",en:"Engineering / Information Technology"},fee:"฿200,000–400,000",feeBand:"mid",focKeys:["eng","biz"],lat:14.0160,lng:100.6140},
   {name:"ม.รังสิต",nameEn:"Rangsit University",abbr:"RSU",campus:"main",type:"private",cat:"university",major:true,diff:4,district:"ปทุมธานี",distKey:"outside",focus:{th:"แพทยศาสตร์ / วิศวกรรม / นิเทศศาสตร์",en:"Medicine / Engineering / Comm Arts"},fee:"฿200,000–800,000",feeBand:"high",focKeys:["med","eng","comm"],lat:13.9653,lng:100.5873},
   {name:"ม.ธุรกิจบัณฑิตย์",nameEn:"Dhurakij Pundit University",abbr:"DPU",campus:"main",type:"private",cat:"university",major:true,diff:4,district:"หลักสี่",distKey:"หลักสี่",focus:{th:"บริหาร / นิติศาสตร์ / เทคโนโลยีสารสนเทศ",en:"Business / Law / IT"},fee:"฿180,000–360,000",feeBand:"mid",focKeys:["biz","law"],lat:13.8703,lng:100.5515},
   {name:"ม.หอการค้าไทย (UTCC)",nameEn:"Univ. of Thai Chamber of Commerce",abbr:"UTCC",campus:"main",type:"private",cat:"university",major:true,diff:5,district:"ดินแดง",distKey:"ดินแดง",focus:{th:"พาณิชยศาสตร์ / บัญชี / วิศวกรรม",en:"Commerce / Accounting / Engineering"},fee:"฿200,000–400,000",feeBand:"mid",focKeys:["biz","eng"],lat:13.7808,lng:100.5605},
@@ -763,11 +782,13 @@ const LABEL_MAP={
   l3:{th:'เปิดรับ (1–3)',en:'Open (1–3)'},l4:{th:'วิทยาเขตหลัก (ใหญ่)',en:'Main campus (large)'},
   l5:{th:'วิทยาลัย/เฉพาะทาง',en:'College/Specialized'},l6:{th:'วิทยาเขตสาขา (◇)',en:'Satellite campus (◇)'},
   l7:{th:'เขตกรุงเทพมหานคร',en:'Bangkok district'},l8:{th:'ปิดถาวร',en:'Permanently closed'},
-  mSug:{th:'📝 ข้อแนะนำ/ปัญหา',en:'📝 Suggestion/Problem'},rsSug:{th: '📝 ข้อแนะนำ/ปัญหา', en: '📝 Suggestion/Problem'},
+  mSug:{th:'📝 ข้อแนะนำ/ปัญหา',en:'📝 Feedback/Problem'},rsSug:{th: '📝 ข้อแนะนำ/ปัญหา', en: '📝 Feedback/Problem'},
   rsAdvice:{th:'คำแนะนำเพิ่มเติม: ควรศึกษาข้อมูลและตรวจสอบรายละเอียดเกี่ยวกับมหาวิทยาลัยที่สนใจด้วยตนเองเพิ่มเติม', en:"Quick Advice: Be sure to explore universities you're interested in! Doing a little research of your own is the best way to get to know them and find your perfect fit.", en_wind:"Dear User: Pray allow me to impart further counsel, that you might not be led astray by the mere whisper of rumour or the facile assurances of another. It behoves you, good sir or madam, to undertake with diligent endeavour a thorough examination and scrutiny of those institutions of higher learning, whether it be a venerable university or a more humble college, which have hitherto captured your discerning interest. Verily, a personal investigation into the minutiae thereof shall furnish you with an unshakeable certainty, a foundation of knowledge upon which to build your most important decisions.<br> Believe me to be, with the highest esteem, faithfully yours,<br> Site Developer."},
   mAdvice:{th:'คำแนะนำเพิ่มเติม: ควรศึกษาข้อมูลและตรวจสอบรายละเอียดเกี่ยวกับมหาวิทยาลัยที่สนใจด้วยตนเองเพิ่มเติม', en:"Quick Advice: Be sure to explore universities you're interested in! Doing a little research of your own is the best way to get to know them and find your perfect fit.", en_wind:"yo fam 💀💀 listen up or you get the fanum tax no cap 😭 you gotta do your own research fr fr peep the university lore before you commit no cap 🗿 that insta-apply energy is giving cooked fr fr you gotta check the details yourself or you gonna get ratio'd by the syllabus 💀💀 the college arc is not gonna be bussin if you dont have the rizz to navigate the details fam 😭"},
+  Qnote:{th:"โน๊ต", en:"Quick Note"}, TepmyNote:{th:"ทดโน้ตคราวๆ ที่นี้ได้นะ...", en:"Jot your stuff here..."},
 };
 
+// Change Text Language Without Unique Id
 function setLang(l){
   if(l === 'en'){enToggleCount++;}
   LANG=l;
@@ -799,6 +820,51 @@ function applySize(sz, clickedEl){
   targets.forEach(id=>{const e=document.getElementById(id);if(e)e.style.fontSize=sz+'px';});
   // Mark active buttons in both desktop and mobile size selectors
   document.querySelectorAll('[data-sz]').forEach(el=>el.classList.toggle('active',parseInt(el.dataset.sz)===sz));
+}
+
+// ── NOTE DATA ──
+// Dictionary pairing: ('noteArea' : 'noteBox')
+const noteIds = {
+  'myNote' : 'noteBox', 
+  'rsMyNote' : 'rsNoteBox'
+};
+// Loop through each ID pair automatically
+Object.keys(noteIds).forEach(noteId => {
+  const myNote = document.getElementById(noteId);
+  const boxId = noteIds[noteId];
+  const box = document.getElementById(boxId);
+  if (!myNote) return;
+// 1. Keep Text Data
+// Load any saved note from previous sessions
+  if (localStorage.getItem('savedNote_' + noteId)) {
+    myNote.innerHTML = localStorage.getItem('savedNote_' + noteId);
+  }
+// Auto-save the note whenever the user types
+  myNote.addEventListener('input', () => {
+    localStorage.setItem('savedNote_' + noteId, myNote.innerHTML);
+  });
+// 2. Ensures empty tags are cleared out so placeholder shows up
+  myNote.addEventListener('blur', () => {
+    if (myNote.innerHTML.trim() === '' || myNote.innerHTML === '<br>') {
+      myNote.innerHTML = '';
+      localStorage.setItem('savedNote_' + noteId, '');
+    }
+  });
+// 3. Toggle Open/Close
+// Interface UI Toggle Open/Close Memory
+  if (box && localStorage.getItem('noteRetracted_' + boxId) === 'true') {
+    box.classList.add('retracted');
+  }
+});
+// Toggle Open/Close Click Event
+function toggleNoteSize(boxId) {
+  const box = document.getElementById(boxId);
+  if (!box) return;
+
+  box.classList.toggle('retracted');  
+  // Save current display preference state
+  const isRetracted = box.classList.contains('retracted');
+  localStorage.setItem('noteRetracted_' + boxId, isRetracted);
 }
 
 // ── RIGHT SIDEBAR ──
